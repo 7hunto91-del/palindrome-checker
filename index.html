@@ -376,10 +376,9 @@
         <!-- 2. Miles per kWh → mpg equivalent -->
         <div class="section-divider">Miles per kWh → mpg equivalent</div>
         <p class="hint">
-          Put in your EV’s efficiency in miles per kWh (from the tool above) to see the equivalent petrol/diesel mpg, and, if you add electricity price, an approximate pence-per-mile cost.
+          Put in your EV’s efficiency in miles per kWh (from the tool above) to see roughly what mpg that would look like in a petrol or diesel car.
         </p>
         <input id="ev-mpkwh" type="number" min="0" step="0.1" placeholder="Efficiency (mi/kWh)" />
-        <input id="ev-price" type="number" min="0" step="0.1" placeholder="Electricity price (p/kWh, optional)" />
         <button class="primary" id="ev-calc-btn">Calculate</button>
         <div id="ev-result" class="result">
           <div class="result-header">
@@ -388,7 +387,6 @@
           </div>
           <div id="ev-result-text">
             <div id="ev-lines"></div>
-            <div id="ev-cost-line" class="hint"></div>
           </div>
         </div>
 
@@ -500,7 +498,12 @@
   </div>
 
   <script>
-    // Theme toggle + remember theme
+    // --- Energy & fuel constants ---
+    const LITRES_PER_UK_GALLON = 4.54609;
+    const KWH_PER_LITRE_PETROL = 9.5;
+    const KWH_PER_LITRE_DIESEL = 10.7;
+
+    // --- Theme toggle + remember theme ---
     const body = document.body;
     const themeToggle = document.getElementById("theme-toggle");
     const themeIcon = document.getElementById("theme-icon");
@@ -535,18 +538,14 @@
       setTheme(next);
     });
 
-    // Tab switcher + remember last-used tab
+    // --- Tab switcher + remember last-used tab ---
     const switchButtons = document.querySelectorAll(".switch-btn");
     const tools = document.querySelectorAll(".tool");
 
     function activateTab(targetId) {
       switchButtons.forEach(b => {
         const tid = b.getAttribute("data-target");
-        if (tid === targetId) {
-          b.classList.add("active");
-        } else {
-          b.classList.remove("active");
-        }
+        b.classList.toggle("active", tid === targetId);
       });
       tools.forEach(t => {
         t.classList.toggle("active", t.id === targetId);
@@ -580,6 +579,10 @@
     const evEstResult = document.getElementById("ev-est-result");
     const evEstText = document.getElementById("ev-est-text");
 
+    // Shared inputs for other tools
+    const evMpkwhInput = document.getElementById("ev-mpkwh");
+    const cmpEvMpkwhInput = document.getElementById("cmp-ev-mpkwh");
+
     function estimateFromRange() {
       const pack = parseFloat(evPackInput.value);
       const soc = parseFloat(evSocInput.value);
@@ -598,54 +601,42 @@
       evEstText.textContent =
         `≈ ${mpkwh.toFixed(2)} mi/kWh based on ${range.toFixed(0)} mi ` +
         `at ${soc.toFixed(0)}% of a ${pack.toFixed(1)} kWh usable battery.`;
+
+      // Auto-fill the mpg converter and cost comparison
+      if (!isNaN(mpkwh) && mpkwh > 0) {
+        evMpkwhInput.value = mpkwh.toFixed(2);
+        cmpEvMpkwhInput.value = mpkwh.toFixed(2);
+      }
     }
 
     evEstimateBtn.addEventListener("click", estimateFromRange);
 
     // --- EV: mi/kWh → mpg equivalent ---
-    const LITRES_PER_UK_GALLON = 4.54609;
-    const KWH_PER_LITRE_PETROL = 9.5;
-    const KWH_PER_LITRE_DIESEL = 10.7;
-
-    const evMpkwhInput = document.getElementById("ev-mpkwh");
-    const evPriceInput = document.getElementById("ev-price");
     const evCalcBtn = document.getElementById("ev-calc-btn");
     const evResult = document.getElementById("ev-result");
     const evLines = document.getElementById("ev-lines");
-    const evCostLine = document.getElementById("ev-cost-line");
 
     function calculateEvMpg() {
       const eff = parseFloat(evMpkwhInput.value);
-      const price = parseFloat(evPriceInput.value);
 
       evResult.style.display = "block";
 
       if (!eff || eff <= 0) {
         evLines.textContent = "Enter a valid mi/kWh value.";
-        evCostLine.textContent = "";
         return;
       }
 
       const mpgPetrol = eff * KWH_PER_LITRE_PETROL * LITRES_PER_UK_GALLON;
       const mpgDiesel = eff * KWH_PER_LITRE_DIESEL * LITRES_PER_UK_GALLON;
 
-      evLines.innerHTML =
+      evLines.textContent =
         `${eff.toFixed(2)} mi/kWh ≈ ${mpgPetrol.toFixed(1)} mpg (petrol) | ` +
         `${mpgDiesel.toFixed(1)} mpg (diesel)`;
-
-      if (!isNaN(price) && price > 0) {
-        const pencePerMile = price / eff;
-        evCostLine.textContent =
-          `≈ ${pencePerMile.toFixed(1)} p/mile at ${price.toFixed(1)} p/kWh.`;
-      } else {
-        evCostLine.textContent = "";
-      }
     }
 
     evCalcBtn.addEventListener("click", calculateEvMpg);
 
     // --- EV: cost per mile comparison (EV vs petrol vs diesel) ---
-    const cmpEvMpkwhInput = document.getElementById("cmp-ev-mpkwh");
     const cmpEvPriceSlider = document.getElementById("cmp-ev-price-slider");
     const cmpEvPriceInput = document.getElementById("cmp-ev-price-input");
     const cmpEvPriceLabel = document.getElementById("cmp-ev-price-label");
@@ -671,6 +662,7 @@
     const cmpDieselValue = document.getElementById("cmp-diesel-value");
 
     function syncSlider(slider, input, label) {
+      if (!slider || !input) return;
       slider.addEventListener("input", () => {
         input.value = slider.value;
         if (label) label.textContent = `${parseFloat(slider.value).toFixed(0)} p`;
@@ -718,12 +710,13 @@
         ? dieselLitresPerMile * dieselPrice
         : NaN;
 
-      // Show text values
       cmpEvValue.textContent = isNaN(evPencePerMile) ? "n/a" : `${evPencePerMile.toFixed(1)} p/mi`;
       cmpPetrolValue.textContent = isNaN(petrolPencePerMile) ? "n/a" : `${petrolPencePerMile.toFixed(1)} p/mi`;
       cmpDieselValue.textContent = isNaN(dieselPencePerMile) ? "n/a" : `${dieselPencePerMile.toFixed(1)} p/mi`;
 
-      const values = [evPencePerMile, petrolPencePerMile, dieselPencePerMile].filter(v => !isNaN(v) && v > 0);
+      const values = [evPencePerMile, petrolPencePerMile, dieselPencePerMile].filter(
+        v => !isNaN(v) && v > 0
+      );
       if (!values.length) {
         cmpText.textContent = "Add energy prices (p/kWh, p/L) to see costs per mile.";
         cmpBarEv.style.width = cmpBarPetrol.style.width = cmpBarDiesel.style.width = "0%";
@@ -735,7 +728,7 @@
       function widthFor(cost) {
         if (isNaN(cost) || cost <= 0) return 0;
         const base = (cost / maxCost) * 100;
-        return Math.max(18, base); // minimum visible width
+        return Math.max(18, base); // minimum visible width for anything with data
       }
 
       cmpBarEv.style.width = `${widthFor(evPencePerMile)}%`;
@@ -763,14 +756,13 @@
       const co2 = parseFloat(document.getElementById("co2").value);
       const period = document.getElementById("reg-period").value;
 
+      taxResult.style.display = "block";
+
       if (!co2 || co2 < 0) {
-        taxResult.style.display = "block";
         taxMain.textContent = "Enter a valid CO₂ value.";
         taxExtra.textContent = "";
         return;
       }
-
-      taxResult.style.display = "block";
 
       if (period === "2001-2017") {
         let band = "M";
@@ -837,7 +829,7 @@
             btn.textContent = original;
           }, 1200);
         } catch (e) {
-          // Fallback: do nothing visible if clipboard fails
+          // Ignore clipboard errors silently
         }
       });
     });
