@@ -446,11 +446,8 @@ async function autoFillFuelFromProxy() {
 
     const data = await res.json();
 
-    // Top level: { last_updated, stations }
-    const stations = Array.isArray(data)
-      ? data
-      : (Array.isArray(data.stations) ? data.stations : []);
-
+    // Expected shape: { last_updated, stations: [ { prices: {E10, E5, B7} } ] }
+    const stations = Array.isArray(data.stations) ? data.stations : [];
     if (!stations.length) {
       console.warn("No stations in fuel data", data);
       return;
@@ -460,60 +457,35 @@ async function autoFillFuelFromProxy() {
     const dieselPrices = [];
 
     for (const st of stations) {
-      const possibleArrays = [st.fuels, st.fuel_prices, st.prices, st.fuelPrices];
-      for (const arr of possibleArrays) {
-        if (Array.isArray(arr)) {
-          for (const f of arr) {
-            const name = String(
-              f.name || f.fuel_type || f.product || ""
-            ).toLowerCase();
-            const price = Number(
-              f.price || f.pence_per_litre || f.amount || f.value
-            );
-            if (!isFinite(price) || price <= 0) continue;
-
-            if (name.includes("diesel")) {
-              dieselPrices.push(price);
-            } else if (
-              name.includes("unleaded") ||
-              name.includes("petrol") ||
-              name.includes("e10") ||
-              name.includes("e5")
-            ) {
-              petrolPrices.push(price);
-            }
-          }
-        }
+      const prices = st.prices || {};
+      // E10/E5 = petrol/unleaded, B7 = diesel
+      if (typeof prices.E10 === "number") {
+        petrolPrices.push(prices.E10);
+      } else if (typeof prices.E5 === "number") {
+        petrolPrices.push(prices.E5);
       }
-
-      for (const [key, value] of Object.entries(st)) {
-        if (typeof value !== "number" || !isFinite(value) || value <= 0) continue;
-        const k = key.toLowerCase();
-        if (k.includes("diesel")) {
-          dieselPrices.push(value);
-        } else if (
-          k.includes("unleaded") ||
-          k.includes("petrol") ||
-          k.includes("e10") ||
-          k.includes("e5")
-        ) {
-          petrolPrices.push(value);
-        }
+      if (typeof prices.B7 === "number") {
+        dieselPrices.push(prices.B7);
       }
     }
 
-    function avg(arr) {
-      return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+    if (!petrolPrices.length && !dieselPrices.length) {
+      console.warn("No usable fuel prices found in stations");
+      return;
     }
 
-    const petrolAvg = avg(petrolPrices);
-    const dieselAvg = avg(dieselPrices);
+    const avg = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
 
-    if (petrolAvg) {
-      s3_petrol.value = petrolAvg.toFixed(1);
+    if (petrolPrices.length) {
+      const petrolAvg = avg(petrolPrices);
+      s3_petrol.value = petrolAvg.toFixed(1);   // pence per litre
+      console.log("Petrol avg (p/L):", petrolAvg);
     }
-    if (dieselAvg) {
-      s3_diesel.value = dieselAvg.toFixed(1);
+
+    if (dieselPrices.length) {
+      const dieselAvg = avg(dieselPrices);
+      s3_diesel.value = dieselAvg.toFixed(1);   // pence per litre
+      console.log("Diesel avg (p/L):", dieselAvg);
     }
 
     recalcStep3();
@@ -559,3 +531,4 @@ s4_kwh.oninput = s4_start.oninput = s4_end.oninput = s4_power.oninput = recalcSt
 
 </body>
 </html>
+
