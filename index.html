@@ -2,334 +2,152 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Car Tools – EV Efficiency & VED Bands</title>
+  <title>Car Tools – EV Efficiency, Charging & VED</title>
 
   <!-- Simple emoji favicon -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E🚗%3C/text%3E%3C/svg%3E">
 
   <style>
-    :root {
-      --transition-speed: 0.2s;
-    }
-
+    :root { --transition-speed: 0.2s; }
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      min-height: 100vh;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 32px 16px;
-      box-sizing: border-box;
+      min-height: 100vh; margin: 0; display: flex; justify-content: center; align-items: flex-start;
+      padding: 32px 16px; box-sizing: border-box;
       transition: background var(--transition-speed) ease, color var(--transition-speed) ease;
       color: var(--text-color);
     }
-
-    /* 🌙 Dark mode */
+    /* Dark */
     body[data-theme="dark"] {
       background: radial-gradient(circle at top, #1f2937, #020617 60%);
-      --text-color: #f9fafb;
-      --card-bg: #020617;
-      --border-color: #1f2937;
-      --muted-text: #d1d5db;
-      --input-bg: #020617;
-      --input-border: #334155;
-      --link-color: #93c5fd;
-      --result-info-bg: #0b1120;
-      --result-info-text: #e5e7eb;
-      --button-bg: linear-gradient(135deg, #2563eb, #22c55e);
-      --chip-bg: #020617;
-      --chip-border: #475569;
-      --bar-ev: #22c55e;
-      --bar-petrol: #f97316;
-      --bar-diesel: #3b82f6;
+      --text-color:#f9fafb; --card-bg:#020617; --border-color:#1f2937;
+      --muted-text:#d1d5db; --input-bg:#020617; --input-border:#334155; --link-color:#93c5fd;
+      --result-info-bg:#0b1120; --result-info-text:#e5e7eb;
+      --button-bg:linear-gradient(135deg,#2563eb,#22c55e);
+      --chip-bg:#020617; --chip-border:#475569;
+      --bar-ev:#22c55e; --bar-petrol:#f97316; --bar-diesel:#3b82f6;
     }
-
-    /* ☀️ Light mode */
+    /* Light */
     body[data-theme="light"] {
-      background: #f3f4f6;
-      --text-color: #111827;
-      --card-bg: #ffffff;
-      --border-color: #e5e7eb;
-      --muted-text: #6b7280;
-      --input-bg: #f9fafb;
-      --input-border: #d1d5db;
-      --link-color: #2563eb;
-      --result-info-bg: #eff6ff;
-      --result-info-text: #1e3a8a;
-      --button-bg: linear-gradient(135deg, #2563eb, #22c55e);
-      --chip-bg: #ffffff;
-      --chip-border: #d1d5db;
-      --bar-ev: #16a34a;
-      --bar-petrol: #ea580c;
-      --bar-diesel: #1d4ed8;
+      background:#f3f4f6;
+      --text-color:#111827; --card-bg:#ffffff; --border-color:#e5e7eb;
+      --muted-text:#6b7280; --input-bg:#f9fafb; --input-border:#d1d5db; --link-color:#2563eb;
+      --result-info-bg:#eff6ff; --result-info-text:#1e3a8a;
+      --button-bg:linear-gradient(135deg,#2563eb,#22c55e);
+      --chip-bg:#ffffff; --chip-border:#d1d5db;
+      --bar-ev:#16a34a; --bar-petrol:#ea580c; --bar-diesel:#1d4ed8;
     }
-
-    .container {
-      width: 100%;
-      max-width: 780px;
-    }
-
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .header-text h1 {
-      margin: 0 0 4px;
-      font-size: 1.7rem;
-      color: var(--text-color);
-    }
-
-    .header-text p {
-      margin: 0;
-      font-size: 0.9rem;
-      color: var(--muted-text);
-    }
-
+    .container { width:100%; max-width:780px; }
+    .header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    .header-text h1 { margin:0 0 4px; font-size:1.7rem; color:var(--text-color); }
+    .header-text p { margin:0; font-size:0.9rem; color:var(--muted-text); }
     .theme-toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border-color);
-      background: var(--card-bg);
-      color: var(--text-color);
-      font-size: 0.8rem;
-      cursor: pointer;
-      user-select: none;
+      display:inline-flex; align-items:center; gap:6px; padding:6px 10px;
+      border-radius:999px; border:1px solid var(--border-color);
+      background:var(--card-bg); color:var(--text-color);
+      font-size:0.8rem; cursor:pointer; user-select:none;
     }
 
-    .switcher {
-      display: flex;
-      justify-content: center;
-      margin: 20px auto 18px;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
+    .switcher { display:flex; justify-content:center; margin:20px auto 18px; gap:8px; flex-wrap:wrap; }
     .switch-btn {
-      padding: 8px 16px;
-      border-radius: 999px;
-      border: 1px solid var(--chip-border);
-      background: var(--chip-bg);
-      color: var(--text-color);
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: background var(--transition-speed) ease, color var(--transition-speed) ease;
+      padding:8px 16px; border-radius:999px;
+      border:1px solid var(--chip-border); background:var(--chip-bg);
+      color:var(--text-color); font-size:0.9rem; cursor:pointer;
+      transition:background var(--transition-speed) ease, color var(--transition-speed) ease;
     }
-
     .switch-btn.active {
-      background: var(--button-bg);
-      color: #ffffff;
-      border-color: transparent;
-      font-weight: 600;
+      background:var(--button-bg); color:#fff; border-color:transparent; font-weight:600;
     }
 
     .card {
-      background: var(--card-bg);
-      border-radius: 16px;
-      padding: 22px 24px;
-      box-shadow: 0 20px 45px rgba(0,0,0,0.18);
-      border: 1px solid var(--border-color);
+      background:var(--card-bg); border-radius:16px; padding:22px 24px;
+      box-shadow:0 20px 45px rgba(0,0,0,0.18); border:1px solid var(--border-color);
     }
+    .tool { display:none; }
+    .tool.active { display:block; }
 
-    .tool {
-      display: none;
-    }
-
-    .tool.active {
-      display: block;
-    }
-
-    h2 {
-      margin-top: 0;
-      font-size: 1.3rem;
-      color: var(--text-color);
-    }
-
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-color);
-    }
-
+    h2 { margin-top:0; font-size:1.3rem; color:var(--text-color); }
+    label { display:block; margin-bottom:6px; font-size:0.9rem; font-weight:600; color:var(--text-color); }
     input, select {
-      width: 100%;
-      padding: 9px 11px;
-      border-radius: 10px;
-      border: 1px solid var(--input-border);
-      background: var(--input-bg);
-      color: var(--text-color);
-      font-size: 0.95rem;
-      box-sizing: border-box;
-      margin-bottom: 12px;
+      width:100%; padding:9px 11px; border-radius:10px;
+      border:1px solid var(--input-border); background:var(--input-bg);
+      color:var(--text-color); font-size:0.95rem; box-sizing:border-box; margin-bottom:12px;
     }
-
     input:focus, select:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 1px #3b82f6;
+      outline:none; border-color:#3b82f6; box-shadow:0 0 0 1px #3b82f6;
     }
-
     button.primary {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: none;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      background: var(--button-bg);
-      color: #ffffff;
-      margin-top: 4px;
+      width:100%; padding:10px 12px; border-radius:10px; border:none;
+      font-size:1rem; font-weight:600; cursor:pointer;
+      background:var(--button-bg); color:#fff; margin-top:4px;
     }
 
     .result {
-      margin-top: 14px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      display: none;
-      background: var(--result-info-bg);
-      color: var(--result-info-text);
+      margin-top:14px; padding:10px 12px; border-radius:10px;
+      display:none; background:var(--result-info-bg); color:var(--result-info-text);
     }
-
     .result-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-      font-size: 0.8rem;
-      color: var(--muted-text);
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:6px; font-size:0.8rem; color:var(--muted-text);
     }
-
     .copy-btn {
-      border: none;
-      border-radius: 999px;
-      padding: 4px 8px;
-      font-size: 0.75rem;
-      cursor: pointer;
-      background: transparent;
-      color: var(--link-color);
+      border:none; border-radius:999px; padding:4px 8px; font-size:0.75rem;
+      cursor:pointer; background:transparent; color:var(--link-color);
     }
+    .copy-btn:hover { text-decoration:underline; }
 
-    .copy-btn:hover {
-      text-decoration: underline;
-    }
-
-    .hint, .note {
-      margin-top: 8px;
-      font-size: 0.8rem;
-      color: var(--muted-text);
-      line-height: 1.4;
-    }
-
+    .hint,.note { margin-top:8px; font-size:0.8rem; color:var(--muted-text); line-height:1.4; }
     .section-divider {
-      margin: 18px 0 10px;
-      border-top: 1px solid var(--border-color);
-      padding-top: 10px;
-      font-size: 0.85rem;
-      color: var(--muted-text);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      margin:18px 0 10px; border-top:1px solid var(--border-color); padding-top:10px;
+      font-size:0.85rem; color:var(--muted-text); font-weight:600;
+      text-transform:uppercase; letter-spacing:0.04em;
     }
-
-    a {
-      color: var(--link-color);
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
+    a { color:var(--link-color); text-decoration:none; }
+    a:hover { text-decoration:underline; }
 
     .slider-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 10px;
+      display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; margin-bottom:10px;
     }
+    .slider-row input[type="range"] { width:100%; }
+    .slider-row input[type="number"] { width:80px; margin-bottom:0; text-align:right; }
 
-    .slider-row input[type="range"] {
-      width: 100%;
-    }
-
-    .slider-row input[type="number"] {
-      width: 80px;
-      margin-bottom: 0;
-      text-align: right;
-    }
-
-    .cmp-bars {
-      margin-top: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      font-size: 0.9rem;
-    }
-
-    .cmp-row {
-      display: grid;
-      grid-template-columns: 60px 1fr auto;
-      gap: 6px;
-      align-items: center;
-    }
-
-    .cmp-label {
-      text-align: left;
-    }
-
-    .cmp-bar-outer {
-      height: 10px;
-      border-radius: 999px;
-      background: rgba(148, 163, 184, 0.35);
-      overflow: hidden;
-    }
-
-    .cmp-bar-inner {
-      height: 100%;
-      border-radius: inherit;
-      width: 0%;
-      transition: width 0.25s ease;
-    }
-
-    .cmp-bar-inner.ev {
-      background: var(--bar-ev);
-    }
-
-    .cmp-bar-inner.petrol {
-      background: var(--bar-petrol);
-    }
-
-    .cmp-bar-inner.diesel {
-      background: var(--bar-diesel);
-    }
-
-    .cmp-value {
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
+    .cmp-bars { margin-top:10px; display:flex; flex-direction:column; gap:6px; font-size:0.9rem; }
+    .cmp-row { display:grid; grid-template-columns:60px 1fr auto; gap:6px; align-items:center; }
+    .cmp-label { text-align:left; }
+    .cmp-bar-outer { height:10px; border-radius:999px; background:rgba(148,163,184,0.35); overflow:hidden; }
+    .cmp-bar-inner { height:100%; border-radius:inherit; width:0%; transition:width 0.25s ease; }
+    .cmp-bar-inner.ev { background:var(--bar-ev); }
+    .cmp-bar-inner.petrol { background:var(--bar-petrol); }
+    .cmp-bar-inner.diesel { background:var(--bar-diesel); }
+    .cmp-value { text-align:right; font-variant-numeric:tabular-nums; }
 
     .inline-label {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.82rem;
-      color: var(--muted-text);
-      margin-bottom: 4px;
+      display:flex; justify-content:space-between; align-items:center;
+      font-size:0.82rem; color:var(--muted-text); margin-bottom:4px;
     }
+    .inline-label span.value { font-weight:600; color:var(--text-color); }
 
-    .inline-label span.value {
-      font-weight: 600;
-      color: var(--text-color);
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+    /* Preset charger buttons */
+    .preset-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-bottom:10px;
+      margin-top:-4px;
+    }
+    .preset-btn {
+      border-radius:999px;
+      border:1px solid var(--chip-border);
+      background:var(--chip-bg);
+      color:var(--muted-text);
+      font-size:0.75rem;
+      padding:4px 8px;
+      cursor:pointer;
+    }
+    .preset-btn:hover {
+      color:var(--text-color);
+      border-color:var(--border-color);
     }
   </style>
 </head>
@@ -338,7 +156,7 @@
     <div class="header">
       <div class="header-text">
         <h1>Car Tools</h1>
-        <p>EV efficiency converters & UK VED lookup</p>
+        <p>EV efficiency, charging & UK VED lookup</p>
       </div>
       <button class="theme-toggle" id="theme-toggle" type="button">
         <span id="theme-icon">🌙</span>
@@ -348,6 +166,7 @@
 
     <div class="switcher">
       <button class="switch-btn active" data-target="tool-evmpg">EV Efficiency Tools</button>
+      <button class="switch-btn" data-target="tool-charge">Charging time</button>
       <button class="switch-btn" data-target="tool-cost">Cost per mile</button>
       <button class="switch-btn" data-target="tool-tax">Car Tax Band Lookup</button>
     </div>
@@ -357,59 +176,96 @@
       <div id="tool-evmpg" class="tool active">
         <h2>EV Efficiency Tools</h2>
 
-        <!-- 1. Estimate mi/kWh from range -->
+        <!-- Estimate mi/kWh from range -->
         <div class="section-divider">Estimate mi/kWh from range</div>
-        <p class="hint">
-          Enter battery size, battery % and the range your car shows, and this works out how many miles per kWh you’re actually getting.
-        </p>
+        <p class="hint">Enter battery size, battery % and the range your car shows to work out your real miles per kWh.</p>
         <input id="ev-pack" type="number" min="0" step="0.1" placeholder="Usable battery (kWh)" />
         <input id="ev-soc" type="number" min="0" max="100" placeholder="Battery % for that range" />
         <input id="ev-range" type="number" min="0" placeholder="Displayed range (miles)" />
         <button class="primary" id="ev-estimate-btn">Estimate efficiency</button>
         <div id="ev-est-result" class="result">
-          <div class="result-header">
-            <span>Result</span>
-            <button type="button" class="copy-btn" data-copy-target="ev-est-text">Copy</button>
-          </div>
+          <div class="result-header"><span>Result</span><button type="button" class="copy-btn" data-copy-target="ev-est-text">Copy</button></div>
           <div id="ev-est-text"></div>
         </div>
 
-        <!-- 2. Miles per kWh → mpg equivalent -->
+        <!-- Miles per kWh → mpg equivalent -->
         <div class="section-divider">Miles per kWh → mpg equivalent</div>
-        <p class="hint">
-          Put in your EV’s efficiency in miles per kWh (from the tool above) to see roughly what mpg that would look like in a petrol or diesel car.
-        </p>
+        <p class="hint">Put in your EV’s efficiency (from the tool above) to see a petrol/diesel mpg equivalent.</p>
         <input id="ev-mpkwh" type="number" min="0" step="0.1" placeholder="Efficiency (mi/kWh)" />
         <button class="primary" id="ev-calc-btn">Calculate</button>
         <div id="ev-result" class="result">
-          <div class="result-header">
-            <span>Result</span>
-            <button type="button" class="copy-btn" data-copy-target="ev-result-text">Copy</button>
+          <div class="result-header"><span>Result</span><button type="button" class="copy-btn" data-copy-target="ev-result-text">Copy</button></div>
+          <div id="ev-result-text"><div id="ev-lines"></div></div>
+        </div>
+
+        <p class="note">Energy equivalence: ~9.5 kWh/L petrol, ~10.7 kWh/L diesel, 4.546 L per UK gallon. Approximate only.</p>
+      </div>
+
+      <!-- Charging time tab -->
+      <div id="tool-charge" class="tool">
+        <h2>Charging time</h2>
+        <p class="hint">Estimate how long a charge will take. Real charging can slow (taper) at high SOC, especially on rapid DC.</p>
+
+        <div class="grid-2">
+          <div>
+            <label>Usable battery (kWh)</label>
+            <input id="chg-pack" type="number" min="0" step="0.1" placeholder="e.g. 70" />
           </div>
-          <div id="ev-result-text">
-            <div id="ev-lines"></div>
+          <div>
+            <label>Charger power (kW)</label>
+            <input id="chg-power" type="number" min="0" step="0.1" placeholder="e.g. 3.1, 7.4, 50, 150" />
+            <div class="preset-row">
+              <button type="button" class="preset-btn" data-kw="3.1">3-pin (13A · ~3.1 kW)</button>
+              <button type="button" class="preset-btn" data-kw="7.4">Home 7.4 kW</button>
+              <button type="button" class="preset-btn" data-kw="11">11 kW</button>
+              <button type="button" class="preset-btn" data-kw="50">50 kW</button>
+              <button type="button" class="preset-btn" data-kw="150">150 kW</button>
+            </div>
           </div>
         </div>
 
-        <p class="note">
-          Energy equivalence: ~9.5 kWh/L petrol, ~10.7 kWh/L diesel, 4.546 L per UK gallon.
-          All values are approximate – for comparison and explanation only.
-        </p>
+        <div class="grid-2">
+          <div>
+            <label>Start SOC (%)</label>
+            <input id="chg-start" type="number" min="0" max="99" step="1" placeholder="e.g. 10" />
+          </div>
+          <div>
+            <label>Target SOC (%)</label>
+            <input id="chg-target" type="number" min="1" max="100" step="1" placeholder="e.g. 80" />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <label>Charging efficiency (%)</label>
+            <input id="chg-eff" type="number" min="50" max="100" step="1" value="90" />
+            <p class="hint">Typical: ~88–92% AC, ~93–97% DC under ideal conditions.</p>
+          </div>
+          <div>
+            <label>Efficiency (mi/kWh, optional)</label>
+            <input id="chg-mpkwh" type="number" min="0" step="0.1" placeholder="Auto-filled if you use ‘Estimate efficiency’" />
+          </div>
+        </div>
+
+        <button class="primary" id="chg-calc-btn">Calculate charging time</button>
+
+        <div id="chg-result" class="result">
+          <div class="result-header"><span>Result</span><button type="button" class="copy-btn" data-copy-target="chg-text">Copy</button></div>
+          <div id="chg-text"></div>
+          <p class="hint" id="chg-note"></p>
+        </div>
       </div>
 
       <!-- Cost per mile tab -->
       <div id="tool-cost" class="tool">
         <h2>Cost per mile: EV vs petrol & diesel</h2>
-        <p class="hint">
-          Rough running-cost comparison. Defaults are typical-ish UK values – adjust for your deals and cars.
-        </p>
+        <p class="hint">Rough running-cost comparison. Tweak to match your deals and cars.</p>
 
         <label>EV inputs</label>
         <input id="cmp-ev-mpkwh" type="number" min="0" step="0.1" placeholder="EV efficiency (mi/kWh, e.g. 3.5)" />
 
         <div class="inline-label">
-          <span>Electricity price (p/kWh)</span>
-          <span class="value" id="cmp-ev-price-label">30 p</span>
+          <span>Electricity price (p/kWh)</span><span class="value" id="cmp-ev-price-label">30 p</span>
         </div>
         <div class="slider-row">
           <input type="range" id="cmp-ev-price-slider" min="1" max="80" value="30" />
@@ -419,8 +275,7 @@
         <label>Petrol car</label>
         <input id="cmp-petrol-mpg" type="number" min="5" step="0.1" placeholder="Petrol mpg (UK, e.g. 40)" />
         <div class="inline-label">
-          <span>Petrol price (p/L)</span>
-          <span class="value" id="cmp-petrol-price-label">150 p</span>
+          <span>Petrol price (p/L)</span><span class="value" id="cmp-petrol-price-label">150 p</span>
         </div>
         <div class="slider-row">
           <input type="range" id="cmp-petrol-price-slider" min="100" max="190" value="150" />
@@ -430,8 +285,7 @@
         <label>Diesel car</label>
         <input id="cmp-diesel-mpg" type="number" min="5" step="0.1" placeholder="Diesel mpg (UK, e.g. 50)" />
         <div class="inline-label">
-          <span>Diesel price (p/L)</span>
-          <span class="value" id="cmp-diesel-price-label">160 p</span>
+          <span>Diesel price (p/L)</span><span class="value" id="cmp-diesel-price-label">160 p</span>
         </div>
         <div class="slider-row">
           <input type="range" id="cmp-diesel-price-slider" min="100" max="190" value="160" />
@@ -440,10 +294,7 @@
 
         <button class="primary" id="cmp-calc-btn">Compare costs</button>
         <div id="cmp-result" class="result">
-          <div class="result-header">
-            <span>Result</span>
-            <button type="button" class="copy-btn" data-copy-target="cmp-result-text">Copy</button>
-          </div>
+          <div class="result-header"><span>Result</span><button type="button" class="copy-btn" data-copy-target="cmp-result-text">Copy</button></div>
           <div id="cmp-result-text">
             <div id="cmp-text" class="hint"></div>
             <div class="cmp-bars">
@@ -482,10 +333,7 @@
         <button class="primary" id="lookup-btn">Look up tax band</button>
 
         <div id="tax-result" class="result">
-          <div class="result-header">
-            <span>Result</span>
-            <button type="button" class="copy-btn" data-copy-target="tax-result-text">Copy</button>
-          </div>
+          <div class="result-header"><span>Result</span><button type="button" class="copy-btn" data-copy-target="tax-result-text">Copy</button></div>
           <div id="tax-result-text">
             <div id="tax-main"></div>
             <div id="tax-extra" class="hint"></div>
@@ -501,31 +349,22 @@
   </div>
 
   <script>
-    // --- Energy & fuel constants ---
+    // --- Constants ---
     const LITRES_PER_UK_GALLON = 4.54609;
     const KWH_PER_LITRE_PETROL = 9.5;
     const KWH_PER_LITRE_DIESEL = 10.7;
 
-    // --- Theme toggle + remember theme ---
+    // --- Theme ---
     const body = document.body;
     const themeToggle = document.getElementById("theme-toggle");
     const themeIcon = document.getElementById("theme-icon");
     const themeLabel = document.getElementById("theme-label");
-
     function setTheme(theme) {
       body.setAttribute("data-theme", theme);
-      if (theme === "light") {
-        themeIcon.textContent = "☀️";
-        themeLabel.textContent = "Light";
-      } else {
-        themeIcon.textContent = "🌙";
-        themeLabel.textContent = "Dark";
-      }
-      try {
-        localStorage.setItem("car-tools-theme", theme);
-      } catch (e) {}
+      if (theme === "light") { themeIcon.textContent = "☀️"; themeLabel.textContent = "Light"; }
+      else { themeIcon.textContent = "🌙"; themeLabel.textContent = "Dark"; }
+      try { localStorage.setItem("car-tools-theme", theme); } catch (e) {}
     }
-
     (function initTheme() {
       let stored = "dark";
       try {
@@ -534,49 +373,30 @@
       } catch (e) {}
       setTheme(stored);
     })();
-
     themeToggle.addEventListener("click", () => {
       const current = body.getAttribute("data-theme") || "dark";
-      const next = current === "dark" ? "light" : "dark";
-      setTheme(next);
+      setTheme(current === "dark" ? "light" : "dark");
     });
 
-    // --- Tab switcher + remember last-used tab ---
+    // --- Tabs ---
     const switchButtons = document.querySelectorAll(".switch-btn");
     const tools = document.querySelectorAll(".tool");
-
     function activateTab(targetId) {
-      switchButtons.forEach(b => {
-        const tid = b.getAttribute("data-target");
-        b.classList.toggle("active", tid === targetId);
-      });
-      tools.forEach(t => {
-        t.classList.toggle("active", t.id === targetId);
-      });
-      try {
-        localStorage.setItem("car-tools-last-tab", targetId);
-      } catch (e) {}
+      switchButtons.forEach(b => b.classList.toggle("active", b.getAttribute("data-target") === targetId));
+      tools.forEach(t => t.classList.toggle("active", t.id === targetId));
+      try { localStorage.setItem("car-tools-last-tab", targetId); } catch (e) {}
     }
-
-    switchButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        const targetId = btn.getAttribute("data-target");
-        activateTab(targetId);
-      });
-    });
-
+    switchButtons.forEach(btn => btn.addEventListener("click", () => activateTab(btn.getAttribute("data-target"))));
     (function initTab() {
       let stored = "tool-evmpg";
       try {
         const saved = localStorage.getItem("car-tools-last-tab");
-        if (saved === "tool-evmpg" || saved === "tool-cost" || saved === "tool-tax") {
-          stored = saved;
-        }
+        if (["tool-evmpg","tool-charge","tool-cost","tool-tax"].includes(saved)) stored = saved;
       } catch (e) {}
       activateTab(stored);
     })();
 
-    // --- EV: estimate mi/kWh from range ---
+    // --- EV: Estimate mi/kWh from range ---
     const evPackInput = document.getElementById("ev-pack");
     const evSocInput = document.getElementById("ev-soc");
     const evRangeInput = document.getElementById("ev-range");
@@ -584,78 +404,61 @@
     const evEstResult = document.getElementById("ev-est-result");
     const evEstText = document.getElementById("ev-est-text");
 
-    // Shared inputs for other tools
+    // Shared / autofill targets
     const evMpkwhInput = document.getElementById("ev-mpkwh");
     const cmpEvMpkwhInput = document.getElementById("cmp-ev-mpkwh");
+    const chgMpkwhInput = document.getElementById("chg-mpkwh");
 
     function estimateFromRange() {
       const pack = parseFloat(evPackInput.value);
       const soc = parseFloat(evSocInput.value);
       const range = parseFloat(evRangeInput.value);
-
       evEstResult.style.display = "block";
-
       if (!pack || !soc || !range || soc <= 0 || soc > 100) {
         evEstText.textContent = "Enter battery kWh, battery % (1–100), and range in miles.";
         return;
       }
-
       const usableKwh = pack * (soc / 100);
       const mpkwh = range / usableKwh;
-
       evEstText.textContent =
         `≈ ${mpkwh.toFixed(2)} mi/kWh based on ${range.toFixed(0)} mi ` +
         `at ${soc.toFixed(0)}% of a ${pack.toFixed(1)} kWh usable battery.`;
-
-      // Auto-fill the mpg converter and cost comparison
       if (!isNaN(mpkwh) && mpkwh > 0) {
-        evMpkwhInput.value = mpkwh.toFixed(2);
-        cmpEvMpkwhInput.value = mpkwh.toFixed(2);
+        if (evMpkwhInput) evMpkwhInput.value = mpkwh.toFixed(2);
+        if (cmpEvMpkwhInput) cmpEvMpkwhInput.value = mpkwh.toFixed(2);
+        if (chgMpkwhInput) chgMpkwhInput.value = mpkwh.toFixed(2);
       }
     }
-
     evEstimateBtn.addEventListener("click", estimateFromRange);
 
-    // --- EV: mi/kWh → mpg equivalent ---
+    // --- mi/kWh → mpg ---
     const evCalcBtn = document.getElementById("ev-calc-btn");
     const evResult = document.getElementById("ev-result");
     const evLines = document.getElementById("ev-lines");
-
     function calculateEvMpg() {
       const eff = parseFloat(evMpkwhInput.value);
-
       evResult.style.display = "block";
-
-      if (!eff || eff <= 0) {
-        evLines.textContent = "Enter a valid mi/kWh value.";
-        return;
-      }
-
+      if (!eff || eff <= 0) { evLines.textContent = "Enter a valid mi/kWh value."; return; }
       const mpgPetrol = eff * KWH_PER_LITRE_PETROL * LITRES_PER_UK_GALLON;
       const mpgDiesel = eff * KWH_PER_LITRE_DIESEL * LITRES_PER_UK_GALLON;
-
       evLines.textContent =
         `${eff.toFixed(2)} mi/kWh ≈ ${mpgPetrol.toFixed(1)} mpg (petrol) | ` +
         `${mpgDiesel.toFixed(1)} mpg (diesel)`;
     }
-
     evCalcBtn.addEventListener("click", calculateEvMpg);
 
-    // --- EV: cost per mile comparison (EV vs petrol vs diesel) ---
+    // --- Cost per mile compare ---
     const cmpEvPriceSlider = document.getElementById("cmp-ev-price-slider");
     const cmpEvPriceInput = document.getElementById("cmp-ev-price-input");
     const cmpEvPriceLabel = document.getElementById("cmp-ev-price-label");
-
     const cmpPetrolMpgInput = document.getElementById("cmp-petrol-mpg");
     const cmpPetrolPriceSlider = document.getElementById("cmp-petrol-price-slider");
     const cmpPetrolPriceInput = document.getElementById("cmp-petrol-price-input");
     const cmpPetrolPriceLabel = document.getElementById("cmp-petrol-price-label");
-
     const cmpDieselMpgInput = document.getElementById("cmp-diesel-mpg");
     const cmpDieselPriceSlider = document.getElementById("cmp-diesel-price-slider");
     const cmpDieselPriceInput = document.getElementById("cmp-diesel-price-input");
     const cmpDieselPriceLabel = document.getElementById("cmp-diesel-price-label");
-
     const cmpCalcBtn = document.getElementById("cmp-calc-btn");
     const cmpResult = document.getElementById("cmp-result");
     const cmpText = document.getElementById("cmp-text");
@@ -680,14 +483,12 @@
         }
       });
     }
-
     syncSlider(cmpEvPriceSlider, cmpEvPriceInput, cmpEvPriceLabel);
     syncSlider(cmpPetrolPriceSlider, cmpPetrolPriceInput, cmpPetrolPriceLabel);
     syncSlider(cmpDieselPriceSlider, cmpDieselPriceInput, cmpDieselPriceLabel);
 
     function compareCosts() {
       cmpResult.style.display = "block";
-
       const evEff = parseFloat(cmpEvMpkwhInput.value);
       const evPrice = parseFloat(cmpEvPriceInput.value);
       const petrolMpg = parseFloat(cmpPetrolMpgInput.value);
@@ -702,26 +503,19 @@
         return;
       }
 
-      // EV cost per mile (pence)
       const evPencePerMile = evPrice && evPrice > 0 ? evPrice / evEff : NaN;
-
-      // Fuel cost per mile (L per mile * pence per litre)
-      const petrolLitresPerMile = LITRES_PER_UK_GALLON / petrolMpg;
-      const dieselLitresPerMile = LITRES_PER_UK_GALLON / dieselMpg;
       const petrolPencePerMile = petrolPrice && petrolPrice > 0
-        ? petrolLitresPerMile * petrolPrice
+        ? (LITRES_PER_UK_GALLON / petrolMpg) * petrolPrice
         : NaN;
       const dieselPencePerMile = dieselPrice && dieselPrice > 0
-        ? dieselLitresPerMile * dieselPrice
+        ? (LITRES_PER_UK_GALLON / dieselMpg) * dieselPrice
         : NaN;
 
       cmpEvValue.textContent = isNaN(evPencePerMile) ? "n/a" : `${evPencePerMile.toFixed(1)} p/mi`;
       cmpPetrolValue.textContent = isNaN(petrolPencePerMile) ? "n/a" : `${petrolPencePerMile.toFixed(1)} p/mi`;
       cmpDieselValue.textContent = isNaN(dieselPencePerMile) ? "n/a" : `${dieselPencePerMile.toFixed(1)} p/mi`;
 
-      const values = [evPencePerMile, petrolPencePerMile, dieselPencePerMile].filter(
-        v => !isNaN(v) && v > 0
-      );
+      const values = [evPencePerMile, petrolPencePerMile, dieselPencePerMile].filter(v => !isNaN(v) && v > 0);
       if (!values.length) {
         cmpText.textContent = "Add energy prices (p/kWh, p/L) to see costs per mile.";
         cmpBarEv.style.width = cmpBarPetrol.style.width = cmpBarDiesel.style.width = "0%";
@@ -729,38 +523,93 @@
       }
 
       const maxCost = Math.max(...values);
-
-      function widthFor(cost) {
-        if (isNaN(cost) || cost <= 0) return 0;
-        const base = (cost / maxCost) * 100;
-        return Math.max(18, base); // minimum visible width for anything with data
-      }
+      const widthFor = (cost) => (isNaN(cost) || cost <= 0) ? 0 : Math.max(18, (cost / maxCost) * 100);
 
       cmpBarEv.style.width = `${widthFor(evPencePerMile)}%`;
       cmpBarPetrol.style.width = `${widthFor(petrolPencePerMile)}%`;
       cmpBarDiesel.style.width = `${widthFor(dieselPencePerMile)}%`;
 
-      if (!isNaN(evPencePerMile) && !isNaN(petrolPencePerMile) && !isNaN(dieselPencePerMile)) {
-        cmpText.textContent =
-          `EV: ${evPencePerMile.toFixed(1)} p/mi · Petrol: ${petrolPencePerMile.toFixed(1)} p/mi · ` +
-          `Diesel: ${dieselPencePerMile.toFixed(1)} p/mi.`;
-      } else {
-        cmpText.textContent = "Partial data – some prices missing, showing what can be calculated.";
-      }
+      cmpText.textContent =
+        `EV: ${isNaN(evPencePerMile)?'n/a':evPencePerMile.toFixed(1)} p/mi · ` +
+        `Petrol: ${isNaN(petrolPencePerMile)?'n/a':petrolPencePerMile.toFixed(1)} p/mi · ` +
+        `Diesel: ${isNaN(dieselPencePerMile)?'n/a':dieselPencePerMile.toFixed(1)} p/mi.`;
     }
-
     cmpCalcBtn.addEventListener("click", compareCosts);
+
+    // --- Charging time calc ---
+    const chgPack = document.getElementById("chg-pack");
+    const chgPower = document.getElementById("chg-power");
+    const chgStart = document.getElementById("chg-start");
+    const chgTarget = document.getElementById("chg-target");
+    const chgEff = document.getElementById("chg-eff");
+    const chgMpkwh = document.getElementById("chg-mpkwh");
+    const chgCalcBtn = document.getElementById("chg-calc-btn");
+    const chgResult = document.getElementById("chg-result");
+    const chgText = document.getElementById("chg-text");
+    const chgNote = document.getElementById("chg-note");
+
+    function calcChargingTime() {
+      chgResult.style.display = "block";
+      const pack = parseFloat(chgPack.value);
+      const power = parseFloat(chgPower.value);
+      const start = parseFloat(chgStart.value);
+      const target = parseFloat(chgTarget.value);
+      let eff = parseFloat(chgEff.value);
+
+      if (!pack || !power || isNaN(start) || isNaN(target) || start < 0 || target > 100 || target <= start) {
+        chgText.textContent = "Enter battery kWh, charger kW, and valid start/target SOC (target > start).";
+        chgNote.textContent = "";
+        return;
+      }
+      if (!eff || eff <= 0 || eff > 100) eff = 90;
+
+      const frac = (target - start) / 100;
+      const energyNeeded = pack * frac;              // kWh to add
+      const effectivePower = power * (eff / 100);    // kW effective
+      const hours = energyNeeded / effectivePower;   // hours
+      const hh = Math.floor(hours);
+      const mm = Math.round((hours - hh) * 60);
+      const prettyTime = hh > 0 ? `${hh}h ${mm}m` : `${mm}m`;
+
+      const mpkwh = parseFloat(chgMpkwh.value);
+      let milesAddedText = "";
+      if (mpkwh && mpkwh > 0) {
+        const miles = energyNeeded * mpkwh;
+        const mph = effectivePower * mpkwh;
+        milesAddedText = ` · ~${miles.toFixed(0)} miles added (~${mph.toFixed(0)} mi/hr)`;
+      }
+
+      chgText.textContent =
+        `Energy to add: ${energyNeeded.toFixed(1)} kWh · Effective power: ${effectivePower.toFixed(1)} kW · ` +
+        `Time: ~${prettyTime}${milesAddedText}.`;
+
+      const dcRapid = power >= 43;
+      const highTarget = target >= 80;
+      chgNote.textContent = (dcRapid || highTarget)
+        ? "Note: Real charging often slows (tapers) at higher SOC, especially on rapid DC. Expect longer than this simple estimate near 80–100%."
+        : "";
+    }
+    chgCalcBtn.addEventListener("click", calcChargingTime);
+
+    // --- Charger power presets ---
+    const presetButtons = document.querySelectorAll(".preset-btn");
+    presetButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const kw = parseFloat(btn.getAttribute("data-kw"));
+        if (!isNaN(kw)) {
+          chgPower.value = kw;
+        }
+      });
+    });
 
     // --- Tax lookup ---
     const taxMain = document.getElementById("tax-main");
     const taxExtra = document.getElementById("tax-extra");
     const taxResult = document.getElementById("tax-result");
     const lookupBtn = document.getElementById("lookup-btn");
-
     function lookupTaxBand() {
       const co2 = parseFloat(document.getElementById("co2").value);
       const period = document.getElementById("reg-period").value;
-
       taxResult.style.display = "block";
 
       if (!co2 || co2 < 0) {
@@ -773,18 +622,9 @@
         let band = "M";
         let rangeLabel = "Over 255 g/km";
         const bands = [
-          [100, "A"],
-          [110, "B"],
-          [120, "C"],
-          [130, "D"],
-          [140, "E"],
-          [150, "F"],
-          [165, "G"],
-          [175, "H"],
-          [185, "I"],
-          [200, "J"],
-          [225, "K"],
-          [255, "L"]
+          [100, "A"], [110, "B"], [120, "C"], [130, "D"], [140, "E"],
+          [150, "F"], [165, "G"], [175, "H"], [185, "I"], [200, "J"],
+          [225, "K"], [255, "L"]
         ];
         for (const [max, b] of bands) {
           if (co2 <= max) {
@@ -811,31 +651,22 @@
           "For cars from 1 April 2017: first year is CO₂-based, then a flat standard rate plus any expensive-car supplement.";
       }
     }
-
     lookupBtn.addEventListener("click", lookupTaxBand);
 
-    // --- Copy to clipboard for results ---
-    const copyButtons = document.querySelectorAll(".copy-btn");
-
-    copyButtons.forEach(btn => {
+    // --- Copy buttons ---
+    document.querySelectorAll(".copy-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const targetId = btn.getAttribute("data-copy-target");
         const target = document.getElementById(targetId);
         if (!target) return;
-
         const text = target.innerText.trim();
         if (!text) return;
-
         const original = btn.textContent;
         try {
           await navigator.clipboard.writeText(text);
           btn.textContent = "Copied!";
-          setTimeout(() => {
-            btn.textContent = original;
-          }, 1200);
-        } catch (e) {
-          // Ignore clipboard errors silently
-        }
+          setTimeout(() => btn.textContent = original, 1200);
+        } catch (e) {}
       });
     });
   </script>
