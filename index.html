@@ -147,7 +147,8 @@
   .result-row .value {
     font-weight: 600;
   }
-    .small-btn {
+
+  .small-btn {
     margin-top: 0.35rem;
     padding: 0.35rem 0.75rem;
     border-radius: 999px;
@@ -263,7 +264,7 @@
     <input id="s3_petrol" type="number" placeholder="e.g. 150">
   </div>
 
- <div class="field">
+  <div class="field">
     <label>Diesel price (p per litre)</label>
     <input id="s3_diesel" type="number" placeholder="e.g. 160">
   </div>
@@ -538,7 +539,7 @@ async function autoFillFuelFromProxy() {
   }
 }
 
-// use postcode outward code to average nearby stations
+// use postcode outward code (bit before the space) to average nearby stations
 function applyFuelForPostcode() {
   if (!fuelStations || !fuelStations.length) {
     console.warn("No fuel stations loaded yet");
@@ -552,19 +553,13 @@ function applyFuelForPostcode() {
     return;
   }
 
-  // Outward code = everything up to first space, no spaces, e.g. "SG1"
-  const cleaned = raw.replace(/\s+/g, "");
-  const match = cleaned.match(/^[A-Z0-9]+/);
-  if (!match) {
-    console.warn("Could not understand postcode", raw);
-    return;
-  }
-  const outward = match[0];
+  // Outward code = everything before the first space, e.g. "SG1" from "SG1 2BE"
+  const outward = raw.split(/\s+/)[0]; 
 
   const localStations = fuelStations.filter(st => {
     if (!st.postcode) return false;
-    const pc = String(st.postcode).toUpperCase().replace(/\s+/g, "");
-    return pc.startsWith(outward);
+    const pcOutward = String(st.postcode).toUpperCase().trim().split(/\s+/)[0];
+    return pcOutward === outward;
   });
 
   const sourceStations = localStations.length ? localStations : fuelStations;
@@ -628,13 +623,9 @@ function recalcStep4() {
 s4_kwh.oninput = s4_start.oninput = s4_end.oninput = s4_power.oninput = recalcStep4;
 </script>
 
-  <div style="text-align:center; padding:1rem; font-size:0.8rem; color:#6b7280;">
+<div style="text-align:center; padding:1rem; font-size:0.8rem; color:#6b7280;">
   © 2025 Car Tools Project · All Rights Reserved
 </div>
 
 </body>
 </html>
-
-
-
-
