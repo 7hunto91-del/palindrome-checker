@@ -90,9 +90,10 @@
   .tab-page {
     display: none;
     background: var(--card);
-    padding: 1rem;
+    padding: 1rem 1rem 1.4rem;
     border-radius: var(--radius);
     border: 1px solid var(--border);
+    overflow: hidden; /* keeps inner boxes inside rounded border */
   }
 
   .tab-page.active {
@@ -179,7 +180,7 @@
 <div class="tabs">
   <button class="tab-btn active" data-tab="step1">Step 1 – How far?</button>
   <button class="tab-btn" data-tab="step2">Step 2 – EV cost</button>
-  <button class="tab-btn" data-tab="step3">Step 3 – Petrol vs Diesel</button>
+  <button class="tab-btn" data-tab="step3">Step 3 – EV vs petrol and Diesel</button>
   <button class="tab-btn" data-tab="step4">Step 4 – Charge time</button>
 </div>
 
@@ -246,8 +247,8 @@
 
 <!-- STEP 3 -->
 <div id="step3" class="tab-page">
-  <h2>Step 3 – What MPG matches my EV cost?</h2>
-  <p class="muted">This shows the MPG a petrol or diesel car would need to cost the same per mile as your EV.</p>
+  <h2>Step 3 – EV vs petrol and Diesel</h2>
+  <p class="muted">This shows the MPG a petrol or diesel car would need to match your EV’s cost per mile.</p>
 
   <div class="field">
     <label>Your miles per kWh</label>
@@ -539,7 +540,7 @@ async function autoFillFuelFromProxy() {
   }
 }
 
-// use postcode outward code (bit before the space) to average nearby stations
+// use postcode outward code (bit before the space) and fall back to the broader area (letters only)
 function applyFuelForPostcode() {
   if (!fuelStations || !fuelStations.length) {
     console.warn("No fuel stations loaded yet");
@@ -553,15 +554,35 @@ function applyFuelForPostcode() {
     return;
   }
 
-  // Outward code = everything before the first space, e.g. "SG1" from "SG1 2BE"
-  const outward = raw.split(/\s+/)[0]; 
+  // Outward code the user typed, e.g. "SG8" or "MK40"
+  const outwardUser = raw.split(/\s+/)[0];
 
-  const localStations = fuelStations.filter(st => {
+  // Area letters only, e.g. "SG" or "MK"
+  const areaMatch = outwardUser.match(/^[A-Z]{1,2}/);
+  const areaUser  = areaMatch ? areaMatch[0] : null;
+
+  const getOutward = (pc) =>
+    String(pc).toUpperCase().trim().split(/\s+/)[0];
+
+  // 1) Try exact outward match first (SG8, SG9, MK40 etc.)
+  let localStations = fuelStations.filter(st => {
     if (!st.postcode) return false;
-    const pcOutward = String(st.postcode).toUpperCase().trim().split(/\s+/)[0];
-    return pcOutward === outward;
+    return getOutward(st.postcode) === outwardUser;
   });
 
+  let usedMode = "outward";
+
+  // 2) If none found, fall back to area letters only (SG*, MK*, etc.)
+  if (!localStations.length && areaUser) {
+    localStations = fuelStations.filter(st => {
+      if (!st.postcode) return false;
+      const stOutward = getOutward(st.postcode);
+      return stOutward.startsWith(areaUser);
+    });
+    usedMode = "area";
+  }
+
+  // 3) If still nothing, use national average
   const sourceStations = localStations.length ? localStations : fuelStations;
   const { petrolAvg, dieselAvg } = computeFuelAveragesFromStations(sourceStations);
 
@@ -573,14 +594,17 @@ function applyFuelForPostcode() {
   }
   recalcStep3();
 
-  if (s3_location_note) {
-    if (localStations.length) {
-      s3_location_note.textContent =
-        `Using average prices for ${outward} area from ${localStations.length} nearby supermarket stations.`;
-    } else {
-      s3_location_note.textContent =
-        `Could not find local stations for ${raw}. Showing national supermarket average instead.`;
-    }
+  if (!s3_location_note) return;
+
+  if (localStations.length && usedMode === "outward") {
+    s3_location_note.textContent =
+      `Using average prices for ${outwardUser} area from ${localStations.length} nearby supermarket stations.`;
+  } else if (localStations.length && usedMode === "area") {
+    s3_location_note.textContent =
+      `No stations found specifically in ${outwardUser}. Using average prices across the ${areaUser} postcode area from ${localStations.length} supermarket stations.`;
+  } else {
+    s3_location_note.textContent =
+      `Could not find local supermarket stations for ${raw}. Showing national supermarket average instead.`;
   }
 }
 
