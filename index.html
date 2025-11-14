@@ -1,596 +1,561 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Car Tools – EV Efficiency & Charging</title>
+<meta charset="UTF-8" />
+<title>Car Tools</title>
 
-  <!-- Simple emoji favicon -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E🚗%3C/text%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    :root { --transition-speed: 0.2s; }
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      min-height: 100vh; margin: 0; display: flex; justify-content: center; align-items: flex-start;
-      padding: 32px 16px; box-sizing: border-box;
-      transition: background var(--transition-speed) ease, color var(--transition-speed) ease;
-      color: var(--text-color);
-    }
-    /* Dark */
-    body[data-theme="dark"] {
-      background: radial-gradient(circle at top, #1f2937, #020617 60%);
-      --text-color:#f9fafb; --card-bg:#020617; --border-color:#1f2937;
-      --muted-text:#d1d5db; --input-bg:#020617; --input-border:#334155; --link-color:#93c5fd;
-      --result-info-bg:#0b1120; --result-info-text:#e5e7eb;
-      --button-bg:linear-gradient(135deg,#2563eb,#22c55e);
-      --chip-bg:#020617; --chip-border:#475569;
-      --bar-ev:#22c55e; --bar-petrol:#f97316; --bar-diesel:#3b82f6;
-    }
-    /* Light */
-    body[data-theme="light"] {
-      background:#f3f4f6;
-      --text-color:#111827; --card-bg:#ffffff; --border-color:#e5e7eb;
-      --muted-text:#6b7280; --input-bg:#f9fafb; --input-border:#d1d5db; --link-color:#2563eb;
-      --result-info-bg:#eff6ff; --result-info-text:#1e3a8a;
-      --button-bg:linear-gradient(135deg,#2563eb,#22c55e);
-      --chip-bg:#ffffff; --chip-border:#d1d5db;
-      --bar-ev:#16a34a; --bar-petrol:#ea580c; --bar-diesel:#1d4ed8;
-    }
-    .container { width:100%; max-width:780px; }
-    .header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
-    .header-text h1 { margin:0 0 4px; font-size:1.7rem; color:var(--text-color); }
-    .header-text p { margin:0; font-size:0.9rem; color:var(--muted-text); }
-    .theme-toggle {
-      display:inline-flex; align-items:center; gap:6px; padding:6px 10px;
-      border-radius:999px; border:1px solid var(--border-color);
-      background:var(--card-bg); color:var(--text-color);
-      font-size:0.8rem; cursor:pointer; user-select:none;
-    }
+<!-- Favicon -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E🚗%3C/text%3E%3C/svg%3E">
 
-    .switcher { display:flex; justify-content:center; margin:20px auto 18px; gap:8px; flex-wrap:wrap; }
-    .switch-btn {
-      padding:8px 16px; border-radius:999px;
-      border:1px solid var(--chip-border); background:var(--chip-bg);
-      color:var(--text-color); font-size:0.9rem; cursor:pointer;
-      transition:background var(--transition-speed) ease, color var(--transition-speed) ease;
-    }
-    .switch-btn.active {
-      background:var(--button-bg); color:#fff; border-color:transparent; font-weight:600;
-    }
+<style>
+  :root {
+    --bg: #e8eff7;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --border: #d1d5db;
+    --radius: 12px;
+  }
 
-    .card {
-      background:var(--card-bg); border-radius:16px; padding:22px 24px;
-      box-shadow:0 20px 45px rgba(0,0,0,0.18); border:1px solid var(--border-color);
-    }
-    .tool { display:none; }
-    .tool.active { display:block; }
+  body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+  }
 
-    h2 { margin-top:0; font-size:1.3rem; color:var(--text-color); }
-    label { display:block; margin-bottom:6px; font-size:0.9rem; font-weight:600; color:var(--text-color); }
-    input, select {
-      width:100%; padding:9px 11px; border-radius:10px;
-      border:1px solid var(--input-border); background:var(--input-bg);
-      color:var(--text-color); font-size:0.95rem; box-sizing:border-box; margin-bottom:12px;
-    }
-    input:focus, select:focus {
-      outline:none; border-color:#3b82f6; box-shadow:0 0 0 1px #3b82f6;
-    }
-    button.primary {
-      width:100%; padding:10px 12px; border-radius:10px; border:none;
-      font-size:1rem; font-weight:600; cursor:pointer;
-      background:var(--button-bg); color:#fff; margin-top:4px;
-    }
+  .wrap {
+    max-width: 860px;
+    width: 100%;
+  }
 
-    .result {
-      margin-top:14px; padding:10px 12px; border-radius:10px;
-      display:none; background:var(--result-info-bg); color:var(--result-info-text);
-    }
-    .result-header {
-      display:flex; justify-content:space-between; align-items:center;
-      margin-bottom:6px; font-size:0.8rem; color:var(--muted-text);
-    }
-    .copy-btn {
-      border:none; border-radius:999px; padding:4px 8px; font-size:0.75rem;
-      cursor:pointer; background:transparent; color:var(--link-color);
-    }
-    .copy-btn:hover { text-decoration:underline; }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 1rem;
+  }
 
-    .hint,.note { margin-top:8px; font-size:0.8rem; color:var(--muted-text); line-height:1.4; }
-    .section-divider {
-      margin:18px 0 10px; border-top:1px solid var(--border-color); padding-top:10px;
-      font-size:0.85rem; color:var(--muted-text); font-weight:600;
-      text-transform:uppercase; letter-spacing:0.04em;
-    }
-    a { color:var(--link-color); text-decoration:none; }
-    a:hover { text-decoration:underline; }
+  header .logo {
+    background: #dbeafe;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
 
-    .slider-row {
-      display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; margin-bottom:10px;
-    }
-    .slider-row input[type="range"] { width:100%; }
-    .slider-row input[type="number"] { width:80px; margin-bottom:0; text-align:right; }
+  header h1 {
+    margin: 0;
+    font-size: 1.4rem;
+    letter-spacing: -0.03em;
+  }
 
-    .cmp-bars { margin-top:10px; display:flex; flex-direction:column; gap:6px; font-size:0.9rem; }
-    .cmp-row { display:grid; grid-template-columns:60px 1fr auto; gap:6px; align-items:center; }
-    .cmp-label { text-align:left; }
-    .cmp-bar-outer { height:10px; border-radius:999px; background:rgba(148,163,184,0.35); overflow:hidden; }
-    .cmp-bar-inner { height:100%; border-radius:inherit; width:0%; transition:width 0.25s ease; }
-    .cmp-bar-inner.ev { background:var(--bar-ev); }
-    .cmp-bar-inner.petrol { background:var(--bar-petrol); }
-    .cmp-bar-inner.diesel { background:var(--bar-diesel); }
-    .cmp-value { text-align:right; font-variant-numeric:tabular-nums; }
+  .muted {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
 
-    .inline-label {
-      display:flex; justify-content:space-between; align-items:center;
-      font-size:0.82rem; color:var(--muted-text); margin-bottom:4px;
-    }
-    .inline-label span.value { font-weight:600; color:var(--text-color); }
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
 
-    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .tab-btn {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
 
-    /* Preset charger buttons */
-    .preset-row {
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px;
-      margin-bottom:10px;
-      margin-top:-4px;
-    }
-    .preset-btn {
-      border-radius:999px;
-      border:1px solid var(--chip-border);
-      background:var(--chip-bg);
-      color:var(--muted-text);
-      font-size:0.75rem;
-      padding:4px 8px;
-      cursor:pointer;
-    }
-    .preset-btn:hover {
-      color:var(--text-color);
-      border-color:var(--border-color);
-    }
-  </style>
+  .tab-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .tab-page {
+    display: none;
+    background: var(--card);
+    padding: 1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+
+  .tab-page.active {
+    display: block;
+  }
+
+  .field {
+    margin-bottom: 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .field label {
+    display: block;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.45rem 0.6rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-top: 0.25rem;
+  }
+
+  /* Result boxes */
+  .result-box {
+    margin-top: 1rem;
+    padding: 0.8rem 0.9rem;
+    border-radius: 10px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+  }
+
+  .result-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+    font-size: 0.95rem;
+  }
+
+  .result-row .label {
+    color: #4b5563;
+  }
+
+  .result-row .value {
+    font-weight: 600;
+  }
+</style>
 </head>
-<body data-theme="dark">
-  <div class="container">
-    <div class="header">
-      <div class="header-text">
-        <h1>Car Tools</h1>
-        <p>EV efficiency, charging & cost per mile</p>
-      </div>
-      <button class="theme-toggle" id="theme-toggle" type="button">
-        <span id="theme-icon">🌙</span>
-        <span id="theme-label">Dark</span>
-      </button>
-    </div>
+<body>
 
-    <div class="switcher">
-      <button class="switch-btn active" data-target="tool-evmpg">EV Efficiency Tools</button>
-      <button class="switch-btn" data-target="tool-charge">Charging time</button>
-      <button class="switch-btn" data-target="tool-cost">Cost per mile</button>
-    </div>
+<div class="wrap">
 
-    <div class="card">
-      <!-- EV tools tab -->
-      <div id="tool-evmpg" class="tool active">
-        <h2>EV Efficiency Tools</h2>
+<header>
+  <div class="logo">🚗</div>
+  <div>
+    <h1>Car Tools</h1>
+    <div class="muted">Simple tools for EVs & fuel cost comparisons</div>
+  </div>
+</header>
 
-        <!-- Estimate mi/kWh from range -->
-        <div class="section-divider">Estimate mi/kWh from range</div>
-        <p class="hint">Enter battery size, battery % and the range your car shows to work out your real miles per kWh.</p>
-        <input id="ev-pack" type="number" min="0" step="0.1" placeholder="Usable battery (kWh)" />
-        <input id="ev-soc" type="number" min="0" max="100" placeholder="Battery % for that range" />
-        <input id="ev-range" type="number" min="0" placeholder="Displayed range (miles)" />
-        <button class="primary" id="ev-estimate-btn">Estimate efficiency</button>
-        <div id="ev-est-result" class="result">
-          <div class="result-header"><span>Result</span><button type="button" class="copy-btn" data-copy-target="ev-est-text">Copy</button></div>
-          <div id="ev-est-text"></div>
-        </div>
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab-btn active" data-tab="step1">Step 1 – How far?</button>
+  <button class="tab-btn" data-tab="step2">Step 2 – EV cost</button>
+  <button class="tab-btn" data-tab="step3">Step 3 – Petrol vs Diesel</button>
+  <button class="tab-btn" data-tab="step4">Step 4 – Charge time</button>
+</div>
 
-        <!-- Miles per kWh → mpg equivalent -->
-        <div class="section-divider">Miles per kWh → mpg equivalent</div>
-        <p class="hint">Put in your EV’s efficiency (from the tool above) to see a petrol/diesel mpg equivalent.</p>
-        <input id="ev-mpkwh" type="number" min="0" step="0.1" placeholder="Efficiency (mi/kWh)" />
-        <button class="primary" id="ev-calc-btn">Calculate</button>
-        <div id="ev-result" class="result">
-          <div class="result-header"><span>Result</span><button type="button" class="copy-btn" data-copy-target="ev-result-text">Copy</button></div>
-          <div id="ev-result-text"><div id="ev-lines"></div></div>
-        </div>
+<!-- STEP 1 -->
+<div id="step1" class="tab-page active">
+  <h2>Step 1 – How far can my EV go?</h2>
+  <p class="muted">This uses the miles on the car’s screen and your battery size to guess how good your efficiency is.</p>
 
-        <p class="note">Energy equivalence: ~9.5 kWh/L petrol, ~10.7 kWh/L diesel, 4.546 L per UK gallon. Approximate only.</p>
-      </div>
-
-      <!-- Charging time tab -->
-      <div id="tool-charge" class="tool">
-        <h2>Charging time</h2>
-        <p class="hint">Estimate how long a charge will take. Real charging can slow (taper) at high SOC, especially on rapid DC.</p>
-        <p class="note">If you want, we can later add presets that also fill start/target SOC (e.g. "10–80% DC rapid session") for quick what-if scenarios.</p>
-
-        <div class="grid-2">
-          <div>
-            <label>Usable battery (kWh)</label>
-            <input id="chg-pack" type="number" min="0" step="0.1" placeholder="e.g. 70" />
-          </div>
-          <div>
-            <label>Charger power (kW)</label>
-            <input id="chg-power" type="number" min="0" step="0.1" placeholder="e.g. 3.1, 7.4, 50, 150" />
-            <div class="preset-row">
-              <button type="button" class="preset-btn" data-kw="3.1">3-pin (13A · ~3.1 kW)</button>
-              <button type="button" class="preset-btn" data-kw="7.4">Home 7.4 kW</button>
-              <button type="button" class="preset-btn" data-kw="11">11 kW</button>
-              <button type="button" class="preset-btn" data-kw="50">50 kW</button>
-              <button type="button" class="preset-btn" data-kw="150">150 kW</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div>
-            <label>Start SOC (%)</label>
-            <input id="chg-start" type="number" min="0" max="99" step="1" placeholder="e.g. 10" />
-          </div>
-          <div>
-            <label>Target SOC (%)</label>
-            <input id="chg-target" type="number" min="1" max="100" step="1" placeholder="e.g. 80" />
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div>
-            <label>Charging efficiency (%)</label>
-            <input id="chg-eff" type="number" min="50" max="100" step="1" value="90" />
-            <p class="hint">Typical: ~88–92% AC, ~93–97% DC under ideal conditions.</p>
-          </div>
-          <div>
-            <label>Efficiency (mi/kWh, optional)</label>
-            <input id="chg-mpkwh" type="number" min="0" step="0.1" placeholder="Auto-filled if you use ‘Estimate efficiency’" />
-          </div>
-        </div>
-
-        <button class="primary" id="chg-calc-btn">Calculate charging time</button>
-
-        <div id="chg-result" class="result">
-          <div class="result-header"><span>Result</span><button type="button" class="copy-btn" data-copy-target="chg-text">Copy</button></div>
-          <div id="chg-text"></div>
-          <p class="hint" id="chg-note"></p>
-        </div>
-      </div>
-
-      <!-- Cost per mile tab -->
-      <div id="tool-cost" class="tool">
-        <h2>Cost per mile: EV vs petrol & diesel</h2>
-        <p class="hint">Rough running-cost comparison. Tweak to match your deals and cars.</p>
-
-        <label>EV inputs</label>
-        <input id="cmp-ev-mpkwh" type="number" min="0" step="0.1" placeholder="EV efficiency (mi/kWh, e.g. 3.5)" />
-
-        <div class="inline-label">
-          <span>Electricity price (p/kWh)</span><span class="value" id="cmp-ev-price-label">30 p</span>
-        </div>
-        <div class="slider-row">
-          <input type="range" id="cmp-ev-price-slider" min="1" max="80" value="30" />
-          <input type="number" id="cmp-ev-price-input" min="0" step="0.1" value="30" />
-        </div>
-
-        <label>Petrol car</label>
-        <input id="cmp-petrol-mpg" type="number" min="5" step="0.1" placeholder="Petrol mpg (UK, e.g. 40)" />
-        <div class="inline-label">
-          <span>Petrol price (p/L)</span><span class="value" id="cmp-petrol-price-label">150 p</span>
-        </div>
-        <div class="slider-row">
-          <input type="range" id="cmp-petrol-price-slider" min="100" max="190" value="150" />
-          <input type="number" id="cmp-petrol-price-input" min="0" step="0.1" value="150" />
-        </div>
-
-        <label>Diesel car</label>
-        <input id="cmp-diesel-mpg" type="number" min="5" step="0.1" placeholder="Diesel mpg (UK, e.g. 50)" />
-        <div class="inline-label">
-          <span>Diesel price (p/L)</span><span class="value" id="cmp-diesel-price-label">160 p</span>
-        </div>
-        <div class="slider-row">
-          <input type="range" id="cmp-diesel-price-slider" min="100" max="190" value="160" />
-          <input type="number" id="cmp-diesel-price-input" min="0" step="0.1" value="160" />
-        </div>
-
-        <button class="primary" id="cmp-calc-btn">Compare costs</button>
-        <div id="cmp-result" class="result">
-          <div class="result-header"><span>Result</span><button type="button" class="copy-btn" data-copy-target="cmp-result-text">Copy</button></div>
-          <div id="cmp-result-text">
-            <div id="cmp-text" class="hint"></div>
-            <div class="cmp-bars">
-              <div class="cmp-row">
-                <span class="cmp-label">EV</span>
-                <div class="cmp-bar-outer"><div class="cmp-bar-inner ev" id="cmp-bar-ev"></div></div>
-                <span class="cmp-value" id="cmp-ev-value"></span>
-              </div>
-              <div class="cmp-row">
-                <span class="cmp-label">Petrol</span>
-                <div class="cmp-bar-outer"><div class="cmp-bar-inner petrol" id="cmp-bar-petrol"></div></div>
-                <span class="cmp-value" id="cmp-petrol-value"></span>
-              </div>
-              <div class="cmp-row">
-                <span class="cmp-label">Diesel</span>
-                <div class="cmp-bar-outer"><div class="cmp-bar-inner diesel" id="cmp-bar-diesel"></div></div>
-                <span class="cmp-value" id="cmp-diesel-value"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
+  <div class="field">
+    <label>Range on the car (miles)</label>
+    <input id="s1_range" type="number" placeholder="e.g. 150">
   </div>
 
-  <script>
-    // --- Constants ---
-    const LITRES_PER_UK_GALLON = 4.54609;
-    const KWH_PER_LITRE_PETROL = 9.5;
-    const KWH_PER_LITRE_DIESEL = 10.7;
+  <div class="field">
+    <label>Battery % showing now</label>
+    <input id="s1_soc" type="number" placeholder="e.g. 50">
+  </div>
 
-    // --- Theme ---
-    const body = document.body;
-    const themeToggle = document.getElementById("theme-toggle");
-    const themeIcon = document.getElementById("theme-icon");
-    const themeLabel = document.getElementById("theme-label");
-    function setTheme(theme) {
-      body.setAttribute("data-theme", theme);
-      if (theme === "light") { themeIcon.textContent = "☀️"; themeLabel.textContent = "Light"; }
-      else { themeIcon.textContent = "🌙"; themeLabel.textContent = "Dark"; }
-      try { localStorage.setItem("car-tools-theme", theme); } catch (e) {}
+  <div class="field">
+    <label>Usable battery size (kWh)</label>
+    <input id="s1_kwh" type="number" placeholder="e.g. 70">
+  </div>
+
+  <div class="result-box">
+    <div class="result-title">Result</div>
+    <div class="result-row">
+      <span class="label">🔋 Full battery range estimate:</span>
+      <span class="value"><span id="s1_full">–</span> miles</span>
+    </div>
+    <div class="result-row">
+      <span class="label">Your efficiency:</span>
+      <span class="value"><span id="s1_eff">–</span> miles per kWh</span>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 2 -->
+<div id="step2" class="tab-page">
+  <h2>Step 2 – How much does my EV cost per mile?</h2>
+  <p class="muted">We use your miles per kWh and what you pay for electricity. This can come from Step 1.</p>
+
+  <div class="field">
+    <label>Miles per kWh</label>
+    <input id="s2_eff" type="number" placeholder="e.g. 3.5">
+  </div>
+
+  <div class="field">
+    <label>Electricity price (p/kWh)</label>
+    <input id="s2_ppk" type="number" placeholder="e.g. 22">
+  </div>
+
+  <div class="result-box">
+    <div class="result-title">Result</div>
+    <div class="result-row">
+      <span class="label">Per mile:</span>
+      <span class="value"><span id="s2_cpm">–</span> p</span>
+    </div>
+    <div class="result-row">
+      <span class="label">Per 100 miles:</span>
+      <span class="value"><span id="s2_100">–</span> £</span>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 3 -->
+<div id="step3" class="tab-page">
+  <h2>Step 3 – What MPG matches my EV cost?</h2>
+  <p class="muted">This shows the MPG a petrol or diesel car would need to cost the same per mile as your EV.</p>
+
+  <div class="field">
+    <label>Your miles per kWh</label>
+    <input id="s3_eff" type="number" placeholder="e.g. 3.5">
+  </div>
+
+  <div class="field">
+    <label>Your electricity price (p/kWh)</label>
+    <input id="s3_ppk" type="number" placeholder="e.g. 22">
+  </div>
+
+  <div class="field">
+    <label>Petrol price (p per litre)</label>
+    <input id="s3_petrol" type="number" placeholder="e.g. 150">
+  </div>
+
+  <div class="field">
+    <label>Diesel price (p per litre)</label>
+    <input id="s3_diesel" type="number" placeholder="e.g. 160">
+  </div>
+
+  <div class="result-box">
+    <div class="result-title">Result</div>
+    <div class="result-row">
+      <span class="label">Your EV:</span>
+      <span class="value"><span id="s3_ev">–</span> p per mile</span>
+    </div>
+    <div class="result-row">
+      <span class="label">Petrol car to match:</span>
+      <span class="value">
+        <span id="s3_petrol_cpm">–</span> p per mile ·
+        <span id="s3_petrolmpg">–</span> MPG
+      </span>
+    </div>
+    <div class="result-row">
+      <span class="label">Diesel car to match:</span>
+      <span class="value">
+        <span id="s3_diesel_cpm">–</span> p per mile ·
+        <span id="s3_dieselmpg">–</span> MPG
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 4 -->
+<div id="step4" class="tab-page">
+  <h2>Step 4 – How long does charging take?</h2>
+  <p class="muted">A simple idea of time based on battery size and charger speed.</p>
+
+  <div class="field">
+    <label>Usable battery size (kWh)</label>
+    <input id="s4_kwh" type="number" placeholder="e.g. 70">
+  </div>
+
+  <div class="field">
+    <label>Start %</label>
+    <input id="s4_start" type="number" placeholder="e.g. 10">
+  </div>
+
+  <div class="field">
+    <label>Finish %</label>
+    <input id="s4_end" type="number" placeholder="e.g. 80">
+  </div>
+
+  <div class="field">
+    <label>Charger power (kW)</label>
+    <input id="s4_power" type="number" placeholder="e.g. 7.4">
+  </div>
+
+  <div class="result-box">
+    <div class="result-title">Result</div>
+    <div class="result-row">
+      <span class="label">Energy added:</span>
+      <span class="value"><span id="s4_energy">–</span> kWh</span>
+    </div>
+    <div class="result-row">
+      <span class="label">Time needed:</span>
+      <span class="value"><span id="s4_time">–</span></span>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* TAB SWITCHING */
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-page").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
+  });
+});
+
+/* STEP 1 */
+const s1_range = document.getElementById("s1_range");
+const s1_soc   = document.getElementById("s1_soc");
+const s1_kwh   = document.getElementById("s1_kwh");
+const s1_full  = document.getElementById("s1_full");
+const s1_eff   = document.getElementById("s1_eff");
+
+const s2_eff   = document.getElementById("s2_eff");
+const s3_eff   = document.getElementById("s3_eff");
+
+function recalcStep1() {
+  let r   = parseFloat(s1_range.value);
+  let soc = parseFloat(s1_soc.value);
+  let kwh = parseFloat(s1_kwh.value);
+
+  if (r > 0 && soc > 0 && kwh > 0) {
+    let full = r / (soc / 100);
+    let eff  = full / kwh;
+
+    s1_full.textContent = full.toFixed(0);
+    s1_eff.textContent  = eff.toFixed(2);
+
+    // Pre-fill later steps with miles per kWh
+    s2_eff.value = eff.toFixed(2);
+    s3_eff.value = eff.toFixed(2);
+
+    recalcStep2();
+    recalcStep3();
+  } else {
+    s1_full.textContent = "–";
+    s1_eff.textContent  = "–";
+  }
+}
+s1_range.oninput = s1_soc.oninput = s1_kwh.oninput = recalcStep1;
+
+/* STEP 2 */
+const s2_ppk  = document.getElementById("s2_ppk");
+const s2_cpm  = document.getElementById("s2_cpm");
+const s2_100  = document.getElementById("s2_100");
+const s3_ppk  = document.getElementById("s3_ppk");
+
+function recalcStep2() {
+  let eff = parseFloat(s2_eff.value);
+  let ppk = parseFloat(s2_ppk.value);
+
+  if (eff > 0 && ppk > 0) {
+    let cost = ppk / eff;  // pence per mile
+    s2_cpm.textContent = cost.toFixed(1);
+
+    // For 100 miles: same number in £ (100 miles * p/mile / 100 p/£)
+    s2_100.textContent = cost.toFixed(2);
+
+    // Pre-fill Step 3 electricity price
+    s3_ppk.value = ppk.toString();
+    recalcStep3();
+  } else {
+    s2_cpm.textContent = "–";
+    s2_100.textContent = "–";
+  }
+}
+s2_eff.oninput = s2_ppk.oninput = recalcStep2;
+
+/* STEP 3 */
+const s3_petrol     = document.getElementById("s3_petrol");
+const s3_diesel     = document.getElementById("s3_diesel");
+const s3_ev         = document.getElementById("s3_ev");
+const s3_petrol_cpm = document.getElementById("s3_petrol_cpm");
+const s3_diesel_cpm = document.getElementById("s3_diesel_cpm");
+const s3_petrolmpg  = document.getElementById("s3_petrolmpg");
+const s3_dieselmpg  = document.getElementById("s3_dieselmpg");
+
+function recalcStep3() {
+  let eff = parseFloat(s3_eff.value);
+  let ppk = parseFloat(s3_ppk.value);
+  let pet = parseFloat(s3_petrol.value);
+  let dis = parseFloat(s3_diesel.value);
+
+  if (eff > 0 && ppk > 0) {
+    let evCost = ppk / eff;  // pence per mile
+
+    s3_ev.textContent         = evCost.toFixed(1);
+    s3_petrol_cpm.textContent = evCost.toFixed(1);
+    s3_diesel_cpm.textContent = evCost.toFixed(1);
+
+    const gal = 4.546;
+
+    if (pet > 0) {
+      s3_petrolmpg.textContent = ((pet * gal) / evCost).toFixed(1);
+    } else {
+      s3_petrolmpg.textContent = "–";
     }
-    (function initTheme() {
-      let stored = "dark";
-      try {
-        const saved = localStorage.getItem("car-tools-theme");
-        if (saved === "light" || saved === "dark") stored = saved;
-      } catch (e) {}
-      setTheme(stored);
-    })();
-    themeToggle.addEventListener("click", () => {
-      const current = body.getAttribute("data-theme") || "dark";
-      setTheme(current === "dark" ? "light" : "dark");
-    });
 
-    // --- Tabs ---
-    const switchButtons = document.querySelectorAll(".switch-btn");
-    const tools = document.querySelectorAll(".tool");
-    function activateTab(targetId) {
-      switchButtons.forEach(b => b.classList.toggle("active", b.getAttribute("data-target") === targetId));
-      tools.forEach(t => t.classList.toggle("active", t.id === targetId));
-      try { localStorage.setItem("car-tools-last-tab", targetId); } catch (e) {}
+    if (dis > 0) {
+      s3_dieselmpg.textContent = ((dis * gal) / evCost).toFixed(1);
+    } else {
+      s3_dieselmpg.textContent = "–";
     }
-    switchButtons.forEach(btn => btn.addEventListener("click", () => activateTab(btn.getAttribute("data-target"))));
-    (function initTab() {
-      let stored = "tool-evmpg";
-      try {
-        const saved = localStorage.getItem("car-tools-last-tab");
-        if (["tool-evmpg","tool-charge","tool-cost"].includes(saved)) stored = saved;
-      } catch (e) {}
-      activateTab(stored);
-    })();
-
-    // --- EV: Estimate mi/kWh from range ---
-    const evPackInput = document.getElementById("ev-pack");
-    const evSocInput = document.getElementById("ev-soc");
-    const evRangeInput = document.getElementById("ev-range");
-    const evEstimateBtn = document.getElementById("ev-estimate-btn");
-    const evEstResult = document.getElementById("ev-est-result");
-    const evEstText = document.getElementById("ev-est-text");
-
-    // Shared / autofill targets
-    const evMpkwhInput = document.getElementById("ev-mpkwh");
-    const cmpEvMpkwhInput = document.getElementById("cmp-ev-mpkwh");
-    const chgMpkwhInput = document.getElementById("chg-mpkwh");
-
-    function estimateFromRange() {
-      const pack = parseFloat(evPackInput.value);
-      const soc = parseFloat(evSocInput.value);
-      const range = parseFloat(evRangeInput.value);
-      evEstResult.style.display = "block";
-      if (!pack || !soc || !range || soc <= 0 || soc > 100) {
-        evEstText.textContent = "Enter battery kWh, battery % (1–100), and range in miles.";
-        return;
-      }
-      const usableKwh = pack * (soc / 100);
-      const mpkwh = range / usableKwh;
-      evEstText.textContent =
-        `≈ ${mpkwh.toFixed(2)} mi/kWh based on ${range.toFixed(0)} mi ` +
-        `at ${soc.toFixed(0)}% of a ${pack.toFixed(1)} kWh usable battery.`;
-      if (!isNaN(mpkwh) && mpkwh > 0) {
-        if (evMpkwhInput) evMpkwhInput.value = mpkwh.toFixed(2);
-        if (cmpEvMpkwhInput) cmpEvMpkwhInput.value = mpkwh.toFixed(2);
-        if (chgMpkwhInput) chgMpkwhInput.value = mpkwh.toFixed(2);
-      }
+  } else {
+    s3_ev.textContent         = "–";
+    s3_petrol_cpm.textContent = "–";
+    s3_diesel_cpm.textContent = "–";
+    s3_petrolmpg.textContent  = "–";
+    s3_dieselmpg.textContent  = "–";
+  }
+}
+s3_eff.oninput = s3_ppk.oninput = s3_petrol.oninput = s3_diesel.oninput = recalcStep3;
+// --- Auto-fill petrol & diesel from Cloudflare fuel proxy ---
+async function autoFillFuelFromProxy() {
+  try {
+    const res = await fetch("https://fuel-proxy.7hunto91.workers.dev");
+    if (!res.ok) {
+      console.warn("Fuel proxy HTTP error", res.status);
+      return;
     }
-    evEstimateBtn.addEventListener("click", estimateFromRange);
 
-    // --- mi/kWh → mpg ---
-    const evCalcBtn = document.getElementById("ev-calc-btn");
-    const evResult = document.getElementById("ev-result");
-    const evLines = document.getElementById("ev-lines");
-    function calculateEvMpg() {
-      const eff = parseFloat(evMpkwhInput.value);
-      evResult.style.display = "block";
-      if (!eff || eff <= 0) { evLines.textContent = "Enter a valid mi/kWh value."; return; }
-      const mpgPetrol = eff * KWH_PER_LITRE_PETROL * LITRES_PER_UK_GALLON;
-      const mpgDiesel = eff * KWH_PER_LITRE_DIESEL * LITRES_PER_UK_GALLON;
-      evLines.textContent =
-        `${eff.toFixed(2)} mi/kWh ≈ ${mpgPetrol.toFixed(1)} mpg (petrol) | ` +
-        `${mpgDiesel.toFixed(1)} mpg (diesel)`;
+    const data = await res.json();
+
+    // Top level: { last_updated, stations }
+    const stations = Array.isArray(data)
+      ? data
+      : (Array.isArray(data.stations) ? data.stations : []);
+
+    if (!stations.length) {
+      console.warn("No stations in fuel data", data);
+      return;
     }
-    evCalcBtn.addEventListener("click", calculateEvMpg);
 
-    // --- Cost per mile compare ---
-    const cmpEvPriceSlider = document.getElementById("cmp-ev-price-slider");
-    const cmpEvPriceInput = document.getElementById("cmp-ev-price-input");
-    const cmpEvPriceLabel = document.getElementById("cmp-ev-price-label");
-    const cmpPetrolMpgInput = document.getElementById("cmp-petrol-mpg");
-    const cmpPetrolPriceSlider = document.getElementById("cmp-petrol-price-slider");
-    const cmpPetrolPriceInput = document.getElementById("cmp-petrol-price-input");
-    const cmpPetrolPriceLabel = document.getElementById("cmp-petrol-price-label");
-    const cmpDieselMpgInput = document.getElementById("cmp-diesel-mpg");
-    const cmpDieselPriceSlider = document.getElementById("cmp-diesel-price-slider");
-    const cmpDieselPriceInput = document.getElementById("cmp-diesel-price-input");
-    const cmpDieselPriceLabel = document.getElementById("cmp-diesel-price-label");
-    const cmpCalcBtn = document.getElementById("cmp-calc-btn");
-    const cmpResult = document.getElementById("cmp-result");
-    const cmpText = document.getElementById("cmp-text");
-    const cmpBarEv = document.getElementById("cmp-bar-ev");
-    const cmpBarPetrol = document.getElementById("cmp-bar-petrol");
-    const cmpBarDiesel = document.getElementById("cmp-bar-diesel");
-    const cmpEvValue = document.getElementById("cmp-ev-value");
-    const cmpPetrolValue = document.getElementById("cmp-petrol-value");
-    const cmpDieselValue = document.getElementById("cmp-diesel-value");
+    const petrolPrices = [];
+    const dieselPrices = [];
 
-    function syncSlider(slider, input, label) {
-      if (!slider || !input) return;
-      slider.addEventListener("input", () => {
-        input.value = slider.value;
-        if (label) label.textContent = `${parseFloat(slider.value).toFixed(0)} p`;
-      });
-      input.addEventListener("input", () => {
-        const val = parseFloat(input.value);
-        if (!isNaN(val)) {
-          slider.value = val;
-          if (label) label.textContent = `${val.toFixed(0)} p`;
+    for (const st of stations) {
+      const possibleArrays = [st.fuels, st.fuel_prices, st.prices, st.fuelPrices];
+      for (const arr of possibleArrays) {
+        if (Array.isArray(arr)) {
+          for (const f of arr) {
+            const name = String(
+              f.name || f.fuel_type || f.product || ""
+            ).toLowerCase();
+            const price = Number(
+              f.price || f.pence_per_litre || f.amount || f.value
+            );
+            if (!isFinite(price) || price <= 0) continue;
+
+            if (name.includes("diesel")) {
+              dieselPrices.push(price);
+            } else if (
+              name.includes("unleaded") ||
+              name.includes("petrol") ||
+              name.includes("e10") ||
+              name.includes("e5")
+            ) {
+              petrolPrices.push(price);
+            }
+          }
         }
-      });
-    }
-    syncSlider(cmpEvPriceSlider, cmpEvPriceInput, cmpEvPriceLabel);
-    syncSlider(cmpPetrolPriceSlider, cmpPetrolPriceInput, cmpPetrolPriceLabel);
-    syncSlider(cmpDieselPriceSlider, cmpDieselPriceInput, cmpDieselPriceLabel);
-
-    function compareCosts() {
-      cmpResult.style.display = "block";
-      const evEff = parseFloat(cmpEvMpkwhInput.value);
-      const evPrice = parseFloat(cmpEvPriceInput.value);
-      const petrolMpg = parseFloat(cmpPetrolMpgInput.value);
-      const petrolPrice = parseFloat(cmpPetrolPriceInput.value);
-      const dieselMpg = parseFloat(cmpDieselMpgInput.value);
-      const dieselPrice = parseFloat(cmpDieselPriceInput.value);
-
-      if (!evEff || evEff <= 0 || !petrolMpg || petrolMpg <= 0 || !dieselMpg || dieselMpg <= 0) {
-        cmpText.textContent = "Enter EV mi/kWh and petrol/diesel mpg values to compare.";
-        cmpBarEv.style.width = cmpBarPetrol.style.width = cmpBarDiesel.style.width = "0%";
-        cmpEvValue.textContent = cmpPetrolValue.textContent = cmpDieselValue.textContent = "";
-        return;
       }
 
-      const evPencePerMile = evPrice && evPrice > 0 ? evPrice / evEff : NaN;
-      const petrolPencePerMile = petrolPrice && petrolPrice > 0
-        ? (LITRES_PER_UK_GALLON / petrolMpg) * petrolPrice
-        : NaN;
-      const dieselPencePerMile = dieselPrice && dieselPrice > 0
-        ? (LITRES_PER_UK_GALLON / dieselMpg) * dieselPrice
-        : NaN;
-
-      cmpEvValue.textContent = isNaN(evPencePerMile) ? "n/a" : `${evPencePerMile.toFixed(1)} p/mi`;
-      cmpPetrolValue.textContent = isNaN(petrolPencePerMile) ? "n/a" : `${petrolPencePerMile.toFixed(1)} p/mi`;
-      cmpDieselValue.textContent = isNaN(dieselPencePerMile) ? "n/a" : `${dieselPencePerMile.toFixed(1)} p/mi`;
-
-      const values = [evPencePerMile, petrolPencePerMile, dieselPencePerMile].filter(v => !isNaN(v) && v > 0);
-      if (!values.length) {
-        cmpText.textContent = "Add energy prices (p/kWh, p/L) to see costs per mile.";
-        cmpBarEv.style.width = cmpBarPetrol.style.width = cmpBarDiesel.style.width = "0%";
-        return;
-      }
-
-      const maxCost = Math.max(...values);
-      const widthFor = (cost) => (isNaN(cost) || cost <= 0) ? 0 : Math.max(18, (cost / maxCost) * 100);
-
-      cmpBarEv.style.width = `${widthFor(evPencePerMile)}%`;
-      cmpBarPetrol.style.width = `${widthFor(petrolPencePerMile)}%`;
-      cmpBarDiesel.style.width = `${widthFor(dieselPencePerMile)}%`;
-
-      cmpText.textContent =
-        `EV: ${isNaN(evPencePerMile)?'n/a':evPencePerMile.toFixed(1)} p/mi · ` +
-        `Petrol: ${isNaN(petrolPencePerMile)?'n/a':petrolPencePerMile.toFixed(1)} p/mi · ` +
-        `Diesel: ${isNaN(dieselPencePerMile)?'n/a':dieselPencePerMile.toFixed(1)} p/mi.`;
-    }
-    cmpCalcBtn.addEventListener("click", compareCosts);
-
-    // --- Charging time calc ---
-    const chgPack = document.getElementById("chg-pack");
-    const chgPower = document.getElementById("chg-power");
-    const chgStart = document.getElementById("chg-start");
-    const chgTarget = document.getElementById("chg-target");
-    const chgEff = document.getElementById("chg-eff");
-    const chgMpkwh = document.getElementById("chg-mpkwh");
-    const chgCalcBtn = document.getElementById("chg-calc-btn");
-    const chgResult = document.getElementById("chg-result");
-    const chgText = document.getElementById("chg-text");
-    const chgNote = document.getElementById("chg-note");
-
-    function calcChargingTime() {
-      chgResult.style.display = "block";
-      const pack = parseFloat(chgPack.value);
-      const power = parseFloat(chgPower.value);
-      const start = parseFloat(chgStart.value);
-      const target = parseFloat(chgTarget.value);
-      let eff = parseFloat(chgEff.value);
-
-      if (!pack || !power || isNaN(start) || isNaN(target) || start < 0 || target > 100 || target <= start) {
-        chgText.textContent = "Enter battery kWh, charger kW, and valid start/target SOC (target > start).";
-        chgNote.textContent = "";
-        return;
-      }
-      if (!eff || eff <= 0 || eff > 100) eff = 90;
-
-      const frac = (target - start) / 100;
-      const energyNeeded = pack * frac;              // kWh to add
-      const effectivePower = power * (eff / 100);    // kW effective
-      const hours = energyNeeded / effectivePower;   // hours
-      const hh = Math.floor(hours);
-      const mm = Math.round((hours - hh) * 60);
-      const prettyTime = hh > 0 ? `${hh}h ${mm}m` : `${mm}m`;
-
-      const mpkwh = parseFloat(chgMpkwh.value);
-      let milesAddedText = "";
-      if (mpkwh && mpkwh > 0) {
-        const miles = energyNeeded * mpkwh;
-        const mph = effectivePower * mpkwh;
-        milesAddedText = ` · ~${miles.toFixed(0)} miles added (~${mph.toFixed(0)} mi/hr)`;
-      }
-
-      chgText.textContent =
-        `Energy to add: ${energyNeeded.toFixed(1)} kWh · Effective power: ${effectivePower.toFixed(1)} kW · ` +
-        `Time: ~${prettyTime}${milesAddedText}.`;
-
-      const dcRapid = power >= 43;
-      const highTarget = target >= 80;
-      chgNote.textContent = (dcRapid || highTarget)
-        ? "Note: Real charging often slows (tapers) at higher SOC, especially on rapid DC. Expect longer than this simple estimate near 80–100%."
-        : "";
-    }
-    chgCalcBtn.addEventListener("click", calcChargingTime);
-
-    // --- Charger power presets ---
-    const presetButtons = document.querySelectorAll(".preset-btn");
-    presetButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        const kw = parseFloat(btn.getAttribute("data-kw"));
-        if (!isNaN(kw)) {
-          chgPower.value = kw;
+      for (const [key, value] of Object.entries(st)) {
+        if (typeof value !== "number" || !isFinite(value) || value <= 0) continue;
+        const k = key.toLowerCase();
+        if (k.includes("diesel")) {
+          dieselPrices.push(value);
+        } else if (
+          k.includes("unleaded") ||
+          k.includes("petrol") ||
+          k.includes("e10") ||
+          k.includes("e5")
+        ) {
+          petrolPrices.push(value);
         }
-      });
-    });
+      }
+    }
 
-    // --- Copy buttons ---
-    document.querySelectorAll(".copy-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const targetId = btn.getAttribute("data-copy-target");
-        const target = document.getElementById(targetId);
-        if (!target) return;
-        const text = target.innerText.trim();
-        if (!text) return;
-        const original = btn.textContent;
-        try {
-          await navigator.clipboard.writeText(text);
-          btn.textContent = "Copied!";
-          setTimeout(() => btn.textContent = original, 1200);
-        } catch (e) {}
-      });
-    });
-  </script>
+    function avg(arr) {
+      return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+    }
+
+    const petrolAvg = avg(petrolPrices);
+    const dieselAvg = avg(dieselPrices);
+
+    if (petrolAvg) {
+      s3_petrol.value = petrolAvg.toFixed(1);
+    }
+    if (dieselAvg) {
+      s3_diesel.value = dieselAvg.toFixed(1);
+    }
+
+    recalcStep3();
+  } catch (err) {
+    console.error("Fuel proxy fetch failed", err);
+  }
+}
+
+window.addEventListener("DOMContentLoaded", autoFillFuelFromProxy);
+
+
+/* STEP 4 */
+const s4_kwh    = document.getElementById("s4_kwh");
+const s4_start  = document.getElementById("s4_start");
+const s4_end    = document.getElementById("s4_end");
+const s4_power  = document.getElementById("s4_power");
+const s4_energy = document.getElementById("s4_energy");
+const s4_time   = document.getElementById("s4_time");
+
+function recalcStep4() {
+  let k  = parseFloat(s4_kwh.value);
+  let st = parseFloat(s4_start.value);
+  let en = parseFloat(s4_end.value);
+  let p  = parseFloat(s4_power.value);
+
+  if (k > 0 && st >= 0 && en > st && p > 0) {
+    let energy = k * ((en - st) / 100);
+    s4_energy.textContent = energy.toFixed(1);
+
+    let hours = energy / p;
+    let h = Math.floor(hours);
+    let m = Math.round((hours - h) * 60);
+
+    s4_time.textContent = `${h}h ${m}m`;
+  } else {
+    s4_energy.textContent = "–";
+    s4_time.textContent   = "–";
+  }
+}
+s4_kwh.oninput = s4_start.oninput = s4_end.oninput = s4_power.oninput = recalcStep4;
+
+</script>
+
 </body>
 </html>
