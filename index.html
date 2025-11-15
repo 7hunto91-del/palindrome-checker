@@ -20,6 +20,11 @@
     --radius: 12px;
   }
 
+  /* Make widths include padding + border so boxes line up perfectly */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
   body {
     margin: 0;
     font-family: system-ui, sans-serif;
@@ -89,11 +94,10 @@
   .tab-page {
     display: none;
     background: var(--card);
-    /* equal horizontal padding so inputs + result box line up */
     padding: 1rem 1.4rem 1.4rem;
     border-radius: var(--radius);
     border: 1px solid var(--border);
-    overflow: hidden; /* keeps inner boxes inside rounded border */
+    overflow: hidden;
   }
 
   .tab-page.active {
@@ -124,6 +128,7 @@
     border-radius: 10px;
     background: #eff6ff;
     border: 1px solid #bfdbfe;
+    width: 100%; /* align with inputs, using border-box */
   }
 
   .result-title {
@@ -161,6 +166,21 @@
 
   .small-btn:hover {
     background: #d0e2ff;
+  }
+
+  /* Preset buttons row */
+  .preset-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+  }
+
+  .preset-btn.active {
+    background: var(--accent);
+    color: #ffffff;
+    border-color: var(--accent);
   }
 
   .footer {
@@ -228,7 +248,10 @@
 <!-- STEP 2 -->
 <div id="step2" class="tab-page">
   <h2>Step 2 – How much does my EV cost per mile?</h2>
-  <p class="muted">We use your miles per kWh and what you pay for electricity. This can come from Step 1.</p>
+  <p class="muted">
+    We use your miles per kWh and what you pay for electricity. We’ve pre-filled a typical home tariff,
+    but you can edit it to match your own bill or use the quick presets.
+  </p>
 
   <div class="field">
     <label>Miles per kWh</label>
@@ -238,6 +261,11 @@
   <div class="field">
     <label>Electricity price (p/kWh)</label>
     <input id="s2_ppk" type="number" placeholder="e.g. 22">
+    <div class="preset-row">
+      <button type="button" class="small-btn preset-btn" data-ppk-preset="22">🏠 Home (22p)</button>
+      <button type="button" class="small-btn preset-btn" data-ppk-preset="55">⚡ Public rapid (55p)</button>
+      <button type="button" class="small-btn preset-btn" data-ppk-preset="75">🚀 Ultra-rapid (75p)</button>
+    </div>
   </div>
 
   <div class="result-box">
@@ -354,6 +382,9 @@
 </div>
 
 <script>
+/* Default electricity price (p/kWh) for pre-fill */
+const DEFAULT_ELEC_PPK = 22;
+
 /* TAB SWITCHING */
 document.querySelectorAll(".tab-btn").forEach(btn => {
   btn.addEventListener("click", () => {
@@ -425,6 +456,24 @@ function recalcStep2() {
   }
 }
 s2_eff.oninput = s2_ppk.oninput = recalcStep2;
+
+/* STEP 2 PRESET BUTTONS */
+const presetButtons = document.querySelectorAll("[data-ppk-preset]");
+
+function handlePresetClick(e) {
+  const btn = e.currentTarget;
+  const value = parseFloat(btn.dataset.ppkPreset);
+
+  if (!isNaN(value)) {
+    s2_ppk.value = value;
+    // highlight active preset
+    presetButtons.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    recalcStep2();
+  }
+}
+
+presetButtons.forEach(btn => btn.addEventListener("click", handlePresetClick));
 
 /* STEP 3 */
 const s3_petrol       = document.getElementById("s3_petrol");
@@ -624,9 +673,20 @@ if (s3_use_local) {
   s3_use_local.addEventListener("click", applyFuelForPostcode);
 }
 
-// run once page is ready
-window.addEventListener("DOMContentLoaded", autoFillFuelFromProxy);
-
+/* On load: pre-fill electricity price with default (if empty) */
+window.addEventListener("DOMContentLoaded", () => {
+  if (!s2_ppk.value) {
+    s2_ppk.value = DEFAULT_ELEC_PPK;
+  }
+  // set home preset as active for visual feedback
+  presetButtons.forEach(btn => {
+    if (btn.dataset.ppkPreset === String(DEFAULT_ELEC_PPK)) {
+      btn.classList.add("active");
+    }
+  });
+  recalcStep2();      // will also push into Step 3
+  autoFillFuelFromProxy();
+});
 
 /* STEP 4 */
 const s4_kwh    = document.getElementById("s4_kwh");
