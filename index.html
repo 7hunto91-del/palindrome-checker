@@ -20,7 +20,6 @@
     --radius: 12px;
   }
 
-  /* Make widths include padding + border so boxes line up perfectly */
   *, *::before, *::after {
     box-sizing: border-box;
   }
@@ -113,22 +112,22 @@
     display: block;
   }
 
-  input {
+  input, select {
     width: 100%;
     padding: 0.45rem 0.6rem;
     border-radius: var(--radius);
     border: 1px solid var(--border);
     margin-top: 0.25rem;
+    font-size: 0.9rem;
   }
 
-  /* Result boxes */
   .result-box {
     margin-top: 1rem;
     padding: 0.8rem 0.9rem;
     border-radius: 10px;
     background: #eff6ff;
     border: 1px solid #bfdbfe;
-    width: 100%; /* align with inputs, using border-box */
+    width: 100%;
   }
 
   .result-title {
@@ -156,11 +155,11 @@
 
   .small-btn {
     margin-top: 0.35rem;
-    padding: 0.35rem 0.75rem;
+    padding: 0.55rem 0.9rem;
     border-radius: 999px;
     border: 1px solid var(--border);
     background: #e5f0ff;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     cursor: pointer;
   }
 
@@ -168,7 +167,22 @@
     background: #d0e2ff;
   }
 
-  /* Preset buttons row */
+  .primary-btn {
+    margin-top: 0.6rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 999px;
+    border: none;
+    background: var(--accent);
+    color: #ffffff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .primary-btn:hover {
+    filter: brightness(0.95);
+  }
+
   .preset-row {
     display: flex;
     flex-wrap: wrap;
@@ -190,6 +204,15 @@
     font-size: 0.8rem;
     color: #6b7280;
   }
+
+  @media (max-width: 640px) {
+    header {
+      align-items: flex-start;
+    }
+    .tab-page {
+      padding: 0.9rem 1rem 1.2rem;
+    }
+  }
 </style>
 </head>
 <body>
@@ -204,12 +227,12 @@
   </div>
 </header>
 
-<!-- Tabs -->
 <div class="tabs">
   <button class="tab-btn active" data-tab="step1">Step 1 – How far?</button>
   <button class="tab-btn" data-tab="step2">Step 2 – EV cost</button>
   <button class="tab-btn" data-tab="step3">Step 3 – EV vs petrol and Diesel</button>
-  <button class="tab-btn" data-tab="step4">Step 4 – Charge time</button>
+  <button class="tab-btn" data-tab="step4">Step 4 – Running cost</button>
+  <button class="tab-btn" data-tab="step5">Step 5 – Charge time</button>
 </div>
 
 <!-- STEP 1 -->
@@ -337,40 +360,95 @@
   </div>
 </div>
 
-<!-- STEP 4 -->
+<!-- STEP 4 – Running cost -->
 <div id="step4" class="tab-page">
-  <h2>Step 4 – How long does charging take?</h2>
+  <h2>Step 4 – Running cost</h2>
+  <p class="muted">
+    This compares the running cost of your EV with a petrol or diesel car, based on your monthly mileage.
+  </p>
+
+  <div class="field">
+    <label>Your miles per month</label>
+    <input id="s4_mpm" type="number" placeholder="e.g. 800">
+  </div>
+
+  <div class="field">
+    <label>Fuel type for comparison</label>
+    <select id="s4_fueltype">
+      <option value="petrol">Petrol</option>
+      <option value="diesel">Diesel</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Vehicle size</label>
+    <select id="s4_vehiclesize">
+      <option value="small_hatch">Small hatchback (Fiesta / Corsa)</option>
+      <option value="med_hatch">Medium hatchback (Golf / Focus / A3)</option>
+      <option value="small_suv">Small SUV (Puma / Juke)</option>
+      <option value="med_suv">Medium SUV (Kuga / Qashqai / Tiguan)</option>
+      <option value="large_suv">Large SUV (Kodiaq / Sportage / Tucson)</option>
+    </select>
+  </div>
+
+  <button type="button" id="s4_use_mpg" class="primary-btn">Use MPG</button>
+  <p class="muted" id="s4_hint">
+    Uses your electricity and fuel prices from Steps 2 &amp; 3.
+  </p>
+
+  <div class="result-box">
+    <div class="result-title">Result (per month)</div>
+
+    <div class="result-row">
+      <span class="label">Your EV running cost:</span>
+      <span class="value">
+        <span id="s4_ev_month">–</span>
+      </span>
+    </div>
+
+    <div class="result-row">
+      <span class="label"><span id="s4_ice_label">Petrol/Diesel</span> running cost:</span>
+      <span class="value">
+        <span id="s4_ice_month">–</span>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 5 – Charge time -->
+<div id="step5" class="tab-page">
+  <h2>Step 5 – How long does charging take?</h2>
   <p class="muted">A simple idea of time based on battery size and charger speed.</p>
 
   <div class="field">
     <label>Usable battery size (kWh)</label>
-    <input id="s4_kwh" type="number" placeholder="e.g. 70">
+    <input id="s5_kwh" type="number" placeholder="e.g. 70">
   </div>
 
   <div class="field">
     <label>Start %</label>
-    <input id="s4_start" type="number" placeholder="e.g. 10">
+    <input id="s5_start" type="number" placeholder="e.g. 10">
   </div>
 
   <div class="field">
     <label>Finish %</label>
-    <input id="s4_end" type="number" placeholder="e.g. 80">
+    <input id="s5_end" type="number" placeholder="e.g. 80">
   </div>
 
   <div class="field">
     <label>Charger power (kW)</label>
-    <input id="s4_power" type="number" placeholder="e.g. 7.4">
+    <input id="s5_power" type="number" placeholder="e.g. 7.4">
   </div>
 
   <div class="result-box">
     <div class="result-title">Result</div>
     <div class="result-row">
       <span class="label">Energy added:</span>
-      <span class="value"><span id="s4_energy">–</span> kWh</span>
+      <span class="value"><span id="s5_energy">–</span> kWh</span>
     </div>
     <div class="result-row">
       <span class="label">Time needed:</span>
-      <span class="value"><span id="s4_time">–</span></span>
+      <span class="value"><span id="s5_time">–</span></span>
     </div>
   </div>
 </div>
@@ -382,7 +460,6 @@
 </div>
 
 <script>
-/* Default electricity price (p/kWh) for pre-fill */
 const DEFAULT_ELEC_PPK = 22;
 
 /* TAB SWITCHING */
@@ -417,7 +494,6 @@ function recalcStep1() {
     s1_full.textContent = full.toFixed(0);
     s1_eff.textContent  = eff.toFixed(2);
 
-    // Pre-fill later steps with miles per kWh
     s2_eff.value = eff.toFixed(2);
     s3_eff.value = eff.toFixed(2);
 
@@ -441,13 +517,10 @@ function recalcStep2() {
   let ppk = parseFloat(s2_ppk.value);
 
   if (eff > 0 && ppk > 0) {
-    let cost = ppk / eff;  // pence per mile
+    let cost = ppk / eff;
     s2_cpm.textContent = cost.toFixed(1);
-
-    // For 100 miles: same number in £ (100 miles * p/mile / 100 p/£)
     s2_100.textContent = cost.toFixed(2);
 
-    // Pre-fill Step 3 electricity price
     s3_ppk.value = ppk.toString();
     recalcStep3();
   } else {
@@ -457,22 +530,17 @@ function recalcStep2() {
 }
 s2_eff.oninput = s2_ppk.oninput = recalcStep2;
 
-/* STEP 2 PRESET BUTTONS */
 const presetButtons = document.querySelectorAll("[data-ppk-preset]");
-
 function handlePresetClick(e) {
   const btn = e.currentTarget;
   const value = parseFloat(btn.dataset.ppkPreset);
-
   if (!isNaN(value)) {
     s2_ppk.value = value;
-    // highlight active preset
     presetButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     recalcStep2();
   }
 }
-
 presetButtons.forEach(btn => btn.addEventListener("click", handlePresetClick));
 
 /* STEP 3 */
@@ -487,7 +555,6 @@ const s3_postcode     = document.getElementById("s3_postcode");
 const s3_use_local    = document.getElementById("s3_use_local");
 const s3_location_note= document.getElementById("s3_location_note");
 
-// will hold all supermarket stations and last updated from proxy
 let fuelStations = null;
 let fuelLastUpdated = null;
 
@@ -498,20 +565,18 @@ function recalcStep3() {
   let dis = parseFloat(s3_diesel.value);
 
   if (eff > 0 && ppk > 0) {
-    let evCost = ppk / eff;  // pence per mile
+    let evCost = ppk / eff;
 
     s3_ev.textContent         = evCost.toFixed(1);
     s3_petrol_cpm.textContent = evCost.toFixed(1);
     s3_diesel_cpm.textContent = evCost.toFixed(1);
 
     const gal = 4.546;
-
     if (pet > 0) {
       s3_petrolmpg.textContent = ((pet * gal) / evCost).toFixed(1);
     } else {
       s3_petrolmpg.textContent = "–";
     }
-
     if (dis > 0) {
       s3_dieselmpg.textContent = ((dis * gal) / evCost).toFixed(1);
     } else {
@@ -524,10 +589,11 @@ function recalcStep3() {
     s3_petrolmpg.textContent  = "–";
     s3_dieselmpg.textContent  = "–";
   }
+
+  recalcStep4();
 }
 s3_eff.oninput = s3_ppk.oninput = s3_petrol.oninput = s3_diesel.oninput = recalcStep3;
 
-// helper: compute averages from an array of stations using E10/E5 for petrol and B7 for diesel
 function computeFuelAveragesFromStations(stations) {
   const petrolPrices = [];
   const dieselPrices = [];
@@ -544,16 +610,13 @@ function computeFuelAveragesFromStations(stations) {
     }
   }
 
-  const avg = arr =>
-    arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
-
+  const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
   return {
     petrolAvg: petrolPrices.length ? avg(petrolPrices) : null,
     dieselAvg: dieselPrices.length ? avg(dieselPrices) : null
   };
 }
 
-// --- Auto-fill petrol & diesel from Cloudflare fuel proxy ---
 async function autoFillFuelFromProxy() {
   try {
     const res = await fetch("https://fuel-proxy.7hunto91.workers.dev");
@@ -561,10 +624,7 @@ async function autoFillFuelFromProxy() {
       console.warn("Fuel proxy HTTP error", res.status);
       return;
     }
-
     const data = await res.json();
-
-    // Expected shape from worker: { last_updated, stations: [...] }
     const stations = Array.isArray(data.stations) ? data.stations : [];
     if (!stations.length) {
       console.warn("No stations in fuel data", data);
@@ -575,33 +635,23 @@ async function autoFillFuelFromProxy() {
     fuelLastUpdated = data.last_updated || data.lastUpdated || null;
 
     const { petrolAvg, dieselAvg } = computeFuelAveragesFromStations(stations);
-
     if (!petrolAvg && !dieselAvg) {
       console.warn("No usable fuel prices found in stations");
       return;
     }
-
-    if (petrolAvg) {
-      s3_petrol.value = petrolAvg.toFixed(1);   // pence per litre
-      console.log("Petrol avg (p/L):", petrolAvg);
-    }
-    if (dieselAvg) {
-      s3_diesel.value = dieselAvg.toFixed(1);
-      console.log("Diesel avg (p/L):", dieselAvg);
-    }
+    if (petrolAvg) s3_petrol.value = petrolAvg.toFixed(1);
+    if (dieselAvg) s3_diesel.value = dieselAvg.toFixed(1);
 
     if (s3_location_note) {
       const updatedText = fuelLastUpdated ? `Last updated ${fuelLastUpdated}.` : "";
       s3_location_note.textContent = `Using national supermarket average prices. ${updatedText}`;
     }
-
     recalcStep3();
   } catch (err) {
     console.error("Fuel proxy fetch failed", err);
   }
 }
 
-// use postcode outward code (bit before the space) and fall back to the broader area (letters only)
 function applyFuelForPostcode() {
   if (!fuelStations || !fuelStations.length) {
     console.warn("No fuel stations loaded yet");
@@ -610,30 +660,22 @@ function applyFuelForPostcode() {
 
   const raw = s3_postcode.value.trim().toUpperCase();
   if (!raw) {
-    // if no postcode, go back to national average
     autoFillFuelFromProxy();
     return;
   }
 
-  // Outward code the user typed, e.g. "SG8" or "MK40"
   const outwardUser = raw.split(/\s+/)[0];
-
-  // Area letters only, e.g. "SG" or "MK"
   const areaMatch = outwardUser.match(/^[A-Z]{1,2}/);
   const areaUser  = areaMatch ? areaMatch[0] : null;
 
-  const getOutward = (pc) =>
-    String(pc).toUpperCase().trim().split(/\s+/)[0];
+  const getOutward = pc => String(pc).toUpperCase().trim().split(/\s+/)[0];
 
-  // 1) Try exact outward match first (SG8, SG9, MK40 etc.)
   let localStations = fuelStations.filter(st => {
     if (!st.postcode) return false;
     return getOutward(st.postcode) === outwardUser;
   });
 
   let usedMode = "outward";
-
-  // 2) If none found, fall back to area letters only (SG*, MK*, etc.)
   if (!localStations.length && areaUser) {
     localStations = fuelStations.filter(st => {
       if (!st.postcode) return false;
@@ -643,16 +685,11 @@ function applyFuelForPostcode() {
     usedMode = "area";
   }
 
-  // 3) If still nothing, use national average
   const sourceStations = localStations.length ? localStations : fuelStations;
   const { petrolAvg, dieselAvg } = computeFuelAveragesFromStations(sourceStations);
 
-  if (petrolAvg) {
-    s3_petrol.value = petrolAvg.toFixed(1);
-  }
-  if (dieselAvg) {
-    s3_diesel.value = dieselAvg.toFixed(1);
-  }
+  if (petrolAvg) s3_petrol.value = petrolAvg.toFixed(1);
+  if (dieselAvg) s3_diesel.value = dieselAvg.toFixed(1);
   recalcStep3();
 
   if (!s3_location_note) return;
@@ -668,55 +705,179 @@ function applyFuelForPostcode() {
       `Could not find local supermarket stations for ${raw}. Showing national supermarket average instead.`;
   }
 }
-
 if (s3_use_local) {
   s3_use_local.addEventListener("click", applyFuelForPostcode);
 }
 
-/* On load: pre-fill electricity price with default (if empty) */
+/* STEP 4 – Running cost */
+const s4_mpm        = document.getElementById("s4_mpm");
+const s4_fueltype   = document.getElementById("s4_fueltype");
+const s4_vehiclesize= document.getElementById("s4_vehiclesize");
+const s4_use_mpg    = document.getElementById("s4_use_mpg");
+const s4_hint       = document.getElementById("s4_hint");
+const s4_ev_month   = document.getElementById("s4_ev_month");
+const s4_ice_month  = document.getElementById("s4_ice_month");
+const s4_ice_label  = document.getElementById("s4_ice_label");
+
+let s4_currentMpg = null;
+
+const MPG_PRESETS = {
+  petrol: {
+    small_hatch: 45,
+    med_hatch:   41,
+    small_suv:   38,
+    med_suv:     35,
+    large_suv:   30
+  },
+  diesel: {
+    small_hatch: 60,
+    med_hatch:   55,
+    small_suv:   50,
+    med_suv:     46,
+    large_suv:   42
+  }
+};
+
+function getEvCostPerMile() {
+  let eff = parseFloat(s3_eff.value) || parseFloat(s2_eff.value);
+  let ppk = parseFloat(s3_ppk.value) || parseFloat(s2_ppk.value);
+  if (eff > 0 && ppk > 0) return ppk / eff;
+  return null;
+}
+
+function costPerMileFromMPG(pencePerLitre, mpg) {
+  const gal = 4.546;
+  if (!(pencePerLitre > 0 && mpg > 0)) return null;
+  const pencePerGallon = pencePerLitre * gal;
+  return pencePerGallon / mpg;
+}
+
+function recalcStep4() {
+  let mpm = parseFloat(s4_mpm.value);
+  if (!(mpm > 0)) {
+    s4_ev_month.textContent  = "–";
+    s4_ice_month.textContent = "–";
+    return;
+  }
+
+  const evCpm = getEvCostPerMile();
+  if (!evCpm || !(evCpm > 0)) {
+    s4_ev_month.textContent = "–";
+  } else {
+    const evMonth = (mpm * evCpm) / 100;
+    s4_ev_month.textContent = "£" + evMonth.toFixed(2);
+  }
+
+  const fuel = s4_fueltype.value || "petrol";
+  const label = fuel === "diesel" ? "Diesel" : "Petrol";
+  s4_ice_label.textContent = label;
+
+  const pricePerLitre = fuel === "diesel"
+    ? parseFloat(s3_diesel.value)
+    : parseFloat(s3_petrol.value);
+
+  const mpg = s4_currentMpg;
+  const iceCpm = costPerMileFromMPG(pricePerLitre, mpg);
+
+  if (!iceCpm || !(iceCpm > 0)) {
+    s4_ice_month.textContent = "–";
+    return;
+  }
+  const iceMonth = (mpm * iceCpm) / 100;
+  s4_ice_month.textContent = "£" + iceMonth.toFixed(2);
+}
+
+if (s4_use_mpg) {
+  s4_use_mpg.addEventListener("click", () => {
+    const fuel = s4_fueltype.value || "petrol";
+    const size = s4_vehiclesize.value || "med_hatch";
+    const fuelPresets = MPG_PRESETS[fuel] || MPG_PRESETS.petrol;
+    const mpg = fuelPresets[size];
+    if (!mpg) {
+      s4_currentMpg = null;
+      if (s4_hint) s4_hint.textContent = "No MPG preset for that combination yet.";
+      recalcStep4();
+      return;
+    }
+    s4_currentMpg = mpg;
+    if (s4_hint) {
+      let sizeLabel;
+      switch (size) {
+        case "small_hatch": sizeLabel = "small hatchback"; break;
+        case "med_hatch":   sizeLabel = "medium hatchback"; break;
+        case "small_suv":   sizeLabel = "small SUV"; break;
+        case "med_suv":     sizeLabel = "medium SUV"; break;
+        case "large_suv":   sizeLabel = "large SUV"; break;
+        default: sizeLabel = "car";
+      }
+      const fuelLabel = fuel === "diesel" ? "diesel" : "petrol";
+      s4_hint.textContent =
+        `Using about ${mpg.toFixed(0)} MPG for a ${sizeLabel} ${fuelLabel}.`;
+    }
+    recalcStep4();
+  });
+}
+
+if (s4_mpm) {
+  s4_mpm.oninput = recalcStep4;
+}
+if (s4_fueltype) {
+  s4_fueltype.onchange = () => {
+    s4_currentMpg = null;
+    if (s4_hint) s4_hint.textContent = "Tap “Use MPG” to refresh the estimate for this fuel type.";
+    recalcStep4();
+  };
+}
+if (s4_vehiclesize) {
+  s4_vehiclesize.onchange = () => {
+    s4_currentMpg = null;
+    if (s4_hint) s4_hint.textContent = "Tap “Use MPG” to refresh the estimate for this size.";
+    recalcStep4();
+  };
+}
+
+/* STEP 5 – Charge time */
+const s5_kwh    = document.getElementById("s5_kwh");
+const s5_start  = document.getElementById("s5_start");
+const s5_end    = document.getElementById("s5_end");
+const s5_power  = document.getElementById("s5_power");
+const s5_energy = document.getElementById("s5_energy");
+const s5_time   = document.getElementById("s5_time");
+
+function recalcStep5() {
+  let k  = parseFloat(s5_kwh.value);
+  let st = parseFloat(s5_start.value);
+  let en = parseFloat(s5_end.value);
+  let p  = parseFloat(s5_power.value);
+
+  if (k > 0 && st >= 0 && en > st && p > 0) {
+    let energy = k * ((en - st) / 100);
+    s5_energy.textContent = energy.toFixed(1);
+
+    let hours = energy / p;
+    let h = Math.floor(hours);
+    let m = Math.round((hours - h) * 60);
+    s5_time.textContent = `${h}h ${m}m`;
+  } else {
+    s5_energy.textContent = "–";
+    s5_time.textContent   = "–";
+  }
+}
+s5_kwh.oninput = s5_start.oninput = s5_end.oninput = s5_power.oninput = recalcStep5;
+
+/* On load */
 window.addEventListener("DOMContentLoaded", () => {
   if (!s2_ppk.value) {
     s2_ppk.value = DEFAULT_ELEC_PPK;
   }
-  // set home preset as active for visual feedback
   presetButtons.forEach(btn => {
     if (btn.dataset.ppkPreset === String(DEFAULT_ELEC_PPK)) {
       btn.classList.add("active");
     }
   });
-  recalcStep2();      // will also push into Step 3
+  recalcStep2();
   autoFillFuelFromProxy();
 });
-
-/* STEP 4 */
-const s4_kwh    = document.getElementById("s4_kwh");
-const s4_start  = document.getElementById("s4_start");
-const s4_end    = document.getElementById("s4_end");
-const s4_power  = document.getElementById("s4_power");
-const s4_energy = document.getElementById("s4_energy");
-const s4_time   = document.getElementById("s4_time");
-
-function recalcStep4() {
-  let k  = parseFloat(s4_kwh.value);
-  let st = parseFloat(s4_start.value);
-  let en = parseFloat(s4_end.value);
-  let p  = parseFloat(s4_power.value);
-
-  if (k > 0 && st >= 0 && en > st && p > 0) {
-    let energy = k * ((en - st) / 100);
-    s4_energy.textContent = energy.toFixed(1);
-
-    let hours = energy / p;
-    let h = Math.floor(hours);
-    let m = Math.round((hours - h) * 60);
-
-    s4_time.textContent = `${h}h ${m}m`;
-  } else {
-    s4_energy.textContent = "–";
-    s4_time.textContent   = "–";
-  }
-}
-s4_kwh.oninput = s4_start.oninput = s4_end.oninput = s4_power.oninput = recalcStep4;
 </script>
 
 </body>
